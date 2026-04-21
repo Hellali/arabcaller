@@ -4,493 +4,579 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>دليل المتصلين</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  /* ============================
-     ⚙️ ضع هنا بيانات Supabase
-     ============================ */
-  :root {
-    --brand: #b8870e;
-    --brand-bg: #b8870e18;
-    --brand-border: #b8870e50;
-  }
+*{box-sizing:border-box;margin:0;padding:0;}
 
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Cairo','Tahoma',sans-serif;background:#f5f4f0;color:#1a1a18;min-height:100vh;}
-  a{text-decoration:none;}
-  input,select,textarea,button{font-family:'Cairo','Tahoma',sans-serif;}
+:root{
+  --gold:#c9a84c;
+  --gold-light:#e8cc7a;
+  --gold-dim:#c9a84c30;
+  --gold-border:#c9a84c50;
+  --bg:#0d0d0f;
+  --bg2:#141418;
+  --bg3:#1a1a20;
+  --bg4:#222228;
+  --text:#f0ede6;
+  --text2:#a8a499;
+  --text3:#5a5850;
+  --border:#2a2a32;
+  --border2:#383840;
+  --success:#2a7a4a;
+  --success-bg:#0d2a1a;
+  --danger:#8a2a2a;
+  --danger-bg:#2a0d0d;
+  --danger-text:#f08080;
+  --info:#1a4a7a;
+  --info-bg:#0d1a2a;
+  --info-text:#80b0f0;
+  --radius:10px;
+  --radius-lg:16px;
+}
 
-  /* ---- Layout ---- */
-  .page{display:none;min-height:100vh;}
-  .page.active{display:block;}
+body{
+  font-family:'Tajawal',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  font-size:15px;
+  line-height:1.6;
+}
 
-  /* ---- Navbar ---- */
-  .nav{background:#fff;border-bottom:0.5px solid #ddd;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;}
-  .nav-logo{display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px;color:#1a1a18;}
-  .nav-logo span{color:var(--brand);font-size:22px;}
-  .nav-actions{display:flex;align-items:center;gap:8px;}
-  .nav-user{font-size:13px;color:#666;margin-left:4px;}
+/* ══ PAGES ══ */
+.page{display:none;min-height:100vh;}
+.page.active{display:block;}
 
-  /* ---- Buttons ---- */
-  .btn{padding:8px 18px;border-radius:8px;font-size:13px;cursor:pointer;font-family:'Cairo','Tahoma',sans-serif;font-weight:500;transition:opacity .15s;}
-  .btn:hover{opacity:.85;}
-  .btn-primary{background:var(--brand);color:#fff;border:none;}
-  .btn-secondary{background:#f0ede6;color:#333;border:0.5px solid #ccc;}
-  .btn-danger{background:#fff0f0;color:#c0392b;border:0.5px solid #f5c6c6;}
-  .btn-ghost{background:transparent;color:#888;border:0.5px solid #ddd;}
-  .btn-info{background:#eaf3fb;color:#185fa5;border:0.5px solid #b5d4f4;}
+/* ══ NOISE TEXTURE OVERLAY ══ */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:0;
+  opacity:.4;
+}
 
-  /* ---- Forms ---- */
-  .form-group{margin-bottom:14px;}
-  .form-label{font-size:12px;color:#666;display:block;margin-bottom:5px;}
-  .form-input{width:100%;padding:10px 14px;background:#f8f7f3;border:0.5px solid #ccc;border-radius:8px;color:#1a1a18;font-size:14px;outline:none;transition:border-color .15s;}
-  .form-input:focus{border-color:var(--brand);}
-  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+/* ══ NAVBAR ══ */
+.nav{
+  position:sticky;top:0;z-index:100;
+  background:rgba(13,13,15,.92);
+  backdrop-filter:blur(20px);
+  border-bottom:0.5px solid var(--border);
+  padding:14px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.nav-brand{
+  display:flex;align-items:center;gap:10px;
+  font-size:18px;font-weight:700;
+  color:var(--text);
+  letter-spacing:.5px;
+}
+.nav-brand .dot{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--gold-dim);
+  border:1px solid var(--gold-border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+}
+.nav-brand span{color:var(--gold);}
+.nav-user{font-size:13px;color:var(--text3);margin-left:4px;}
+.nav-actions{display:flex;align-items:center;gap:8px;}
 
-  /* ---- Cards ---- */
-  .card{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:1.25rem;}
-  .card-found{border-color:var(--brand-border);border-width:1.5px;}
+/* ══ BUTTONS ══ */
+.btn{
+  padding:8px 18px;border-radius:var(--radius);
+  font-size:13px;font-weight:500;cursor:pointer;
+  font-family:'Tajawal',sans-serif;
+  border:none;transition:all .2s;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn-gold{
+  background:linear-gradient(135deg,var(--gold),var(--gold-light));
+  color:#0d0d0f;
+}
+.btn-gold:hover{filter:brightness(1.1);transform:translateY(-1px);}
+.btn-outline{
+  background:transparent;
+  border:0.5px solid var(--border2);
+  color:var(--text2);
+}
+.btn-outline:hover{border-color:var(--gold-border);color:var(--gold);}
+.btn-ghost{background:transparent;color:var(--text3);border:none;}
+.btn-ghost:hover{color:var(--text2);}
+.btn-danger{background:var(--danger-bg);color:var(--danger-text);border:0.5px solid var(--danger);}
+.btn-info{background:var(--info-bg);color:var(--info-text);border:0.5px solid var(--info);}
+.btn-sm{padding:5px 12px;font-size:12px;}
 
-  /* ---- Login ---- */
-  .login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1.5rem;background:#f5f4f0;}
-  .login-box{width:100%;max-width:360px;}
-  .login-icon{width:64px;height:64px;border-radius:50%;background:var(--brand-bg);border:1px solid var(--brand-border);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:28px;}
-  .login-title{text-align:center;margin-bottom:28px;}
-  .login-title h1{font-size:22px;font-weight:600;color:#1a1a18;}
-  .login-title p{font-size:13px;color:#888;margin-top:6px;}
+/* ══ FORMS ══ */
+.form-group{margin-bottom:16px;}
+.form-label{font-size:12px;color:var(--text3);display:block;margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;}
+.form-input{
+  width:100%;padding:11px 16px;
+  background:var(--bg3);
+  border:0.5px solid var(--border);
+  border-radius:var(--radius);
+  color:var(--text);font-size:14px;
+  font-family:'Tajawal',sans-serif;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.form-input:focus{border-color:var(--gold-border);box-shadow:0 0 0 3px var(--gold-dim);}
+.form-input::placeholder{color:var(--text3);}
+select.form-input option{background:var(--bg3);color:var(--text);}
+textarea.form-input{resize:vertical;min-height:80px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 
-  /* ---- Search ---- */
-  .search-wrap{max-width:560px;margin:0 auto;padding:2.5rem 1.5rem;}
-  .search-title{text-align:center;margin-bottom:2rem;}
-  .search-bar{display:flex;gap:8px;margin-bottom:1.5rem;}
-  .search-bar input{flex:1;direction:ltr;text-align:center;font-size:16px;letter-spacing:1px;}
-  .avatar{width:48px;height:48px;border-radius:50%;background:var(--brand-bg);border:1px solid var(--brand-border);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;color:var(--brand);flex-shrink:0;}
-  .avatar-sm{width:40px;height:40px;font-size:15px;}
-  .result-header{display:flex;align-items:center;gap:12px;padding-bottom:14px;margin-bottom:14px;border-bottom:0.5px solid #eee;}
-  .result-name{font-weight:600;font-size:17px;}
-  .result-spec{font-size:13px;color:var(--brand);margin-top:2px;}
-  .result-table{width:100%;font-size:13px;border-collapse:collapse;}
-  .result-table td{padding:5px 0;}
-  .result-table td:first-child{color:#888;padding-left:8px;width:90px;}
-  .badge{padding:4px 10px;border-radius:8px;font-size:12px;font-weight:500;}
-  .badge-success{background:#eafbf0;color:#0f6e56;border:0.5px solid #9fe1cb;}
-  .badge-muted{background:#f0ede6;color:#666;border:0.5px solid #ccc;}
-  .not-found{text-align:center;padding:2rem;}
-  .not-found-icon{width:48px;height:48px;border-radius:50%;background:#f0ede6;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:20px;color:#888;}
-  .ext-links{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px;}
-  .db-count{text-align:center;font-size:12px;color:#aaa;margin-top:8px;}
+/* ══ CARDS ══ */
+.card{
+  background:var(--bg2);
+  border:0.5px solid var(--border);
+  border-radius:var(--radius-lg);
+  padding:1.5rem;
+}
+.card-gold{border-color:var(--gold-border);box-shadow:0 0 30px var(--gold-dim);}
 
-  /* ---- Admin ---- */
-  .admin-wrap{max-width:860px;margin:0 auto;padding:1.5rem;}
-  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:20px;}
-  .stat-card{background:#f8f7f3;border-radius:8px;padding:1rem;text-align:center;}
-  .stat-num{font-size:26px;font-weight:600;color:#1a1a18;}
-  .stat-label{font-size:12px;color:#888;margin-top:4px;}
-  .tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
-  .tab{padding:7px 14px;border-radius:8px;font-size:13px;cursor:pointer;border:0.5px solid #ccc;background:#fff;color:#333;font-family:'Cairo','Tahoma',sans-serif;font-weight:400;transition:all .15s;}
-  .tab.active{background:var(--brand);color:#fff;border-color:var(--brand);}
-  .contact-row{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px;}
-  .contact-info{flex:1;min-width:0;}
-  .contact-name{font-weight:500;font-size:14px;}
-  .contact-sub{font-size:12px;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:right;}
-  .contact-actions{display:flex;gap:6px;flex-shrink:0;}
-  .alert{padding:9px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;}
-  .alert-success{background:#eafbf0;border:0.5px solid #9fe1cb;color:#0f6e56;}
-  .alert-danger{background:#fff0f0;border:0.5px solid #f5c6c6;color:#c0392b;}
-  .loading{text-align:center;padding:2rem;color:#888;font-size:14px;}
+/* ══ BADGE ══ */
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.5px;}
+.badge-success{background:var(--success-bg);color:#5dba8a;border:0.5px solid var(--success);}
+.badge-muted{background:var(--bg4);color:var(--text3);border:0.5px solid var(--border);}
+.badge-gold{background:var(--gold-dim);color:var(--gold);border:0.5px solid var(--gold-border);}
 
-  /* ---- Setup guide ---- */
-  .setup-wrap{max-width:600px;margin:0 auto;padding:2rem 1.5rem;}
-  .setup-step{background:#fff;border:0.5px solid #ddd;border-radius:12px;padding:1.25rem;margin-bottom:14px;}
-  .setup-step h3{font-size:15px;font-weight:600;margin-bottom:10px;color:#1a1a18;}
-  .setup-step p{font-size:13px;color:#555;line-height:1.7;}
-  .code-block{background:#f0ede6;border-radius:6px;padding:10px 14px;font-family:monospace;font-size:13px;color:#333;margin-top:8px;white-space:pre-wrap;direction:ltr;text-align:left;}
-  .config-inputs{background:#fff;border:2px dashed var(--brand);border-radius:12px;padding:1.25rem;margin-bottom:14px;}
-  .config-inputs h3{font-size:15px;font-weight:600;margin-bottom:14px;color:var(--brand);}
+/* ══ ALERT ══ */
+.alert{padding:10px 16px;border-radius:var(--radius);font-size:13px;margin-bottom:14px;}
+.alert-success{background:var(--success-bg);border:0.5px solid var(--success);color:#5dba8a;}
+.alert-danger{background:var(--danger-bg);border:0.5px solid var(--danger);color:var(--danger-text);}
 
-  @media(max-width:500px){
-    .form-grid{grid-template-columns:1fr;}
-    .search-bar{flex-direction:column;}
-    .contact-actions{flex-direction:column;}
-  }
+/* ══ AVATAR ══ */
+.avatar{
+  width:46px;height:46px;border-radius:50%;
+  background:var(--gold-dim);border:1px solid var(--gold-border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;color:var(--gold);flex-shrink:0;
+}
+.avatar-sm{width:38px;height:38px;font-size:15px;}
+
+/* ══════════════════════════════
+   LOGIN PAGE
+══════════════════════════════ */
+.login-bg{
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:2rem;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 0%, #c9a84c14 0%, transparent 70%),
+    var(--bg);
+}
+.login-box{width:100%;max-width:380px;}
+.login-logo{
+  text-align:center;margin-bottom:2.5rem;
+}
+.login-logo-icon{
+  width:72px;height:72px;border-radius:50%;
+  background:var(--gold-dim);
+  border:1px solid var(--gold-border);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;font-size:30px;
+  box-shadow:0 0 40px var(--gold-dim);
+}
+.login-logo h1{font-size:26px;font-weight:800;color:var(--text);}
+.login-logo p{font-size:13px;color:var(--text3);margin-top:6px;}
+.login-hint{
+  text-align:center;font-size:11px;color:var(--text3);
+  margin-top:16px;padding-top:14px;
+  border-top:0.5px solid var(--border);
+}
+
+/* ══════════════════════════════
+   SEARCH PAGE
+══════════════════════════════ */
+.search-hero{
+  background:radial-gradient(ellipse 80% 60% at 50% -10%,#c9a84c12 0%,transparent 65%);
+  padding:3rem 1.5rem 2rem;text-align:center;
+}
+.search-hero h2{font-size:28px;font-weight:800;margin-bottom:8px;}
+.search-hero h2 span{color:var(--gold);}
+.search-hero p{font-size:14px;color:var(--text2);}
+.search-box{
+  max-width:600px;margin:2rem auto 0;
+  display:flex;gap:10px;
+}
+.search-box input{
+  flex:1;font-size:17px;text-align:center;
+  direction:ltr;letter-spacing:1.5px;
+  padding:14px 20px;
+  background:var(--bg3);
+  border:0.5px solid var(--border2);
+  border-radius:var(--radius-lg);
+  color:var(--text);font-family:'Tajawal',sans-serif;
+  outline:none;transition:all .2s;
+}
+.search-box input:focus{border-color:var(--gold-border);box-shadow:0 0 0 3px var(--gold-dim);}
+.search-box input::placeholder{color:var(--text3);font-size:14px;}
+.search-btn{
+  padding:14px 26px;
+  background:linear-gradient(135deg,var(--gold),var(--gold-light));
+  border:none;border-radius:var(--radius-lg);
+  color:#0d0d0f;font-size:15px;font-weight:700;
+  cursor:pointer;font-family:'Tajawal',sans-serif;
+  transition:all .2s;white-space:nowrap;
+}
+.search-btn:hover{filter:brightness(1.1);transform:translateY(-1px);}
+
+.search-result-wrap{max-width:600px;margin:1.5rem auto;padding:0 1.5rem;}
+
+/* Result found */
+.result-card{animation:fadeUp .3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.result-header{display:flex;align-items:center;gap:14px;margin-bottom:16px;padding-bottom:16px;border-bottom:0.5px solid var(--border);}
+.result-name{font-size:20px;font-weight:700;}
+.result-spec{font-size:13px;color:var(--gold);margin-top:3px;}
+.result-table{width:100%;font-size:13px;border-collapse:collapse;}
+.result-table td{padding:6px 0;vertical-align:top;}
+.result-table td:first-child{color:var(--text3);width:100px;font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;}
+
+/* Not found */
+.not-found-card{text-align:center;padding:2.5rem 1.5rem;}
+.not-found-icon{
+  width:56px;height:56px;border-radius:50%;
+  background:var(--bg4);border:0.5px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;font-size:24px;color:var(--text3);
+}
+.not-found-card h3{font-size:16px;font-weight:600;margin-bottom:8px;}
+.not-found-card p{font-size:13px;color:var(--text3);margin-bottom:20px;}
+.ext-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;}
+.ext-btn{
+  padding:10px 14px;border-radius:var(--radius);font-size:13px;
+  font-weight:500;cursor:pointer;text-align:center;
+  font-family:'Tajawal',sans-serif;transition:all .2s;
+  text-decoration:none;display:block;
+}
+.ext-btn:hover{transform:translateY(-2px);}
+
+.db-count{text-align:center;font-size:12px;color:var(--text3);margin-top:16px;}
+
+/* ══════════════════════════════
+   ADMIN PAGE
+══════════════════════════════ */
+.admin-layout{display:flex;min-height:calc(100vh - 61px);}
+.sidebar{
+  width:220px;flex-shrink:0;
+  background:var(--bg2);
+  border-left:0.5px solid var(--border);
+  padding:1.5rem 0;
+}
+.sidebar-item{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 20px;font-size:14px;font-weight:500;
+  cursor:pointer;color:var(--text2);transition:all .15s;
+  border-right:3px solid transparent;
+}
+.sidebar-item:hover{color:var(--text);background:var(--bg3);}
+.sidebar-item.active{color:var(--gold);background:var(--gold-dim);border-right-color:var(--gold);}
+.sidebar-icon{font-size:16px;width:20px;text-align:center;}
+.sidebar-sep{height:0.5px;background:var(--border);margin:12px 20px;}
+
+.admin-content{flex:1;padding:2rem;overflow-y:auto;}
+.admin-header{margin-bottom:1.5rem;}
+.admin-header h2{font-size:20px;font-weight:700;}
+.admin-header p{font-size:13px;color:var(--text3);margin-top:4px;}
+
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:2rem;}
+.stat{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;text-align:center;}
+.stat-num{font-size:32px;font-weight:800;color:var(--gold);}
+.stat-label{font-size:12px;color:var(--text3);margin-top:4px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;}
+
+.contact-row{
+  background:var(--bg2);border:0.5px solid var(--border);
+  border-radius:var(--radius-lg);padding:14px 18px;
+  display:flex;align-items:center;gap:14px;
+  margin-bottom:8px;transition:border-color .2s;
+}
+.contact-row:hover{border-color:var(--border2);}
+.contact-info{flex:1;min-width:0;}
+.contact-name{font-size:14px;font-weight:600;color:var(--text);}
+.contact-sub{font-size:12px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:right;margin-top:2px;}
+.contact-actions{display:flex;gap:6px;flex-shrink:0;}
+
+.tab-title{
+  font-size:18px;font-weight:700;margin-bottom:6px;
+}
+.tab-subtitle{font-size:13px;color:var(--text3);margin-bottom:1.5rem;}
+
+.loading{text-align:center;padding:3rem;color:var(--text3);font-size:14px;}
+
+.flash{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:999;
+  padding:12px 24px;border-radius:var(--radius);font-size:14px;font-weight:500;
+  animation:slideUp .3s ease;box-shadow:0 4px 20px rgba(0,0,0,.5);}
+@keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(10px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+.flash-ok{background:var(--success-bg);border:0.5px solid var(--success);color:#5dba8a;}
+.flash-err{background:var(--danger-bg);border:0.5px solid var(--danger);color:var(--danger-text);}
+
+.empty-state{
+  text-align:center;padding:4rem 2rem;
+  background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);
+}
+.empty-icon{font-size:40px;margin-bottom:14px;opacity:.4;}
+.empty-state p{color:var(--text3);font-size:14px;margin-bottom:16px;}
+
+@media(max-width:640px){
+  .sidebar{display:none;}
+  .form-grid{grid-template-columns:1fr;}
+  .search-box{flex-direction:column;}
+  .admin-content{padding:1rem;}
+}
 </style>
 </head>
 <body>
 
-<!-- ==============================
-     صفحة الإعداد (تظهر أول مرة)
-     ============================== -->
-<div id="page-setup" class="page">
-<div class="setup-wrap">
-  <div style="text-align:center;margin-bottom:2rem;">
-    <div class="login-icon" style="margin-bottom:14px;">☎</div>
-    <h1 style="font-size:22px;font-weight:600;">دليل المتصلين — إعداد أولي</h1>
-    <p style="font-size:13px;color:#888;margin-top:6px;">أدخل بيانات Supabase لتشغيل الموقع</p>
-  </div>
-
-  <div class="config-inputs">
-    <h3>⚙️ بيانات الاتصال بـ Supabase</h3>
-    <div class="form-group">
-      <label class="form-label">Supabase URL</label>
-      <input type="text" id="cfg-url" class="form-input" placeholder="https://xxxxxxxxxxxx.supabase.co" dir="ltr"/>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Supabase Anon Key</label>
-      <input type="text" id="cfg-key" class="form-input" placeholder="eyJhbGci..." dir="ltr"/>
-    </div>
-    <button class="btn btn-primary" style="width:100%;padding:10px;" onclick="saveConfig()">حفظ والبدء</button>
-    <div id="cfg-error" style="display:none;" class="alert alert-danger" style="margin-top:12px;"></div>
-  </div>
-
-  <div class="setup-step">
-    <h3>📋 الخطوة 1 — إنشاء مشروع Supabase</h3>
-    <p>
-      1. اذهب إلى <strong>supabase.com</strong> وسجّل مجاناً<br/>
-      2. اضغط <strong>New Project</strong><br/>
-      3. اختر اسماً للمشروع (مثلاً: arabcaller)<br/>
-      4. اضبط كلمة مرور لقاعدة البيانات واحتفظ بها<br/>
-      5. انتظر دقيقتين حتى ينتهي الإعداد
-    </p>
-  </div>
-
-  <div class="setup-step">
-    <h3>📋 الخطوة 2 — إنشاء جداول قاعدة البيانات</h3>
-    <p>من لوحة Supabase اضغط <strong>SQL Editor</strong> ثم الصق هذا الكود وشغّله:</p>
-    <div class="code-block">-- جدول جهات الاتصال
-CREATE TABLE contacts (
-  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  name text NOT NULL,
-  phone text NOT NULL,
-  specialty text,
-  country text DEFAULT 'الجزائر',
-  notes text,
-  added_by text,
-  added_at text,
-  created_at timestamptz DEFAULT now()
-);
-
--- جدول المديرين
-CREATE TABLE admins (
-  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  username text UNIQUE NOT NULL,
-  password_hash text NOT NULL,
-  full_name text NOT NULL,
-  role text DEFAULT 'admin',
-  created_at timestamptz DEFAULT now()
-);
-
--- السماح بالقراءة والكتابة العامة (الحماية عبر كلمة المرور في التطبيق)
-ALTER TABLE contacts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "allow_all_contacts" ON contacts FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "allow_all_admins" ON admins FOR ALL USING (true) WITH CHECK (true);
-
--- إضافة المدير الرئيسي (كلمة المرور: admin123)
-INSERT INTO admins (username, password_hash, full_name, role)
-VALUES (
-  'admin',
-  '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9',
-  'المدير الرئيسي',
-  'superadmin'
-);</div>
-  </div>
-
-  <div class="setup-step">
-    <h3>📋 الخطوة 3 — نسخ بيانات الاتصال</h3>
-    <p>
-      من لوحة Supabase اضغط <strong>Settings → API</strong><br/>
-      ستجد:<br/>
-      • <strong>Project URL</strong> — انسخه في الحقل الأول أعلاه<br/>
-      • <strong>anon public key</strong> — انسخه في الحقل الثاني
-    </p>
-  </div>
-</div>
-</div>
-
-<!-- ==============================
-     صفحة تسجيل الدخول
-     ============================== -->
+<!-- ══ LOGIN ══ -->
 <div id="page-login" class="page active">
-<div class="login-wrap">
+<div class="login-bg">
   <div class="login-box">
-    <div class="login-title">
-      <div class="login-icon">☎</div>
+    <div class="login-logo">
+      <div class="login-logo-icon">☎</div>
       <h1>دليل المتصلين</h1>
       <p>النظام الخاص بفريق الإعلام</p>
     </div>
     <div class="card">
       <div class="form-group">
         <label class="form-label">اسم المستخدم</label>
-        <input type="text" id="login-user" class="form-input" placeholder="أدخل اسم المستخدم" onkeydown="if(event.key==='Enter')doLogin()"/>
+        <input id="lu" class="form-input" placeholder="أدخل اسم المستخدم" onkeydown="if(event.key==='Enter')login()"/>
       </div>
-      <div class="form-group">
+      <div class="form-group" style="margin-bottom:20px;">
         <label class="form-label">كلمة المرور</label>
-        <input type="password" id="login-pass" class="form-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+        <input id="lp" type="password" class="form-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"/>
       </div>
-      <div id="login-error" class="alert alert-danger" style="display:none;margin-bottom:12px;"></div>
-      <button class="btn btn-primary" style="width:100%;padding:10px;font-size:15px;" onclick="doLogin()">دخول</button>
+      <div id="lerr" class="alert alert-danger" style="display:none;"></div>
+      <button class="btn btn-gold" style="width:100%;padding:12px;font-size:15px;" onclick="login()">
+        دخول
+      </button>
+      <div class="login-hint">المدير الافتراضي: <strong>admin</strong> / <strong>admin123</strong></div>
     </div>
   </div>
 </div>
 </div>
 
-<!-- ==============================
-     صفحة البحث
-     ============================== -->
+<!-- ══ SEARCH ══ -->
 <div id="page-search" class="page">
   <nav class="nav">
-    <div class="nav-logo"><span>☎</span> دليل المتصلين</div>
+    <div class="nav-brand">
+      <div class="dot">☎</div>
+      دليل <span>المتصلين</span>
+    </div>
     <div class="nav-actions">
-      <span class="nav-user" id="nav-username"></span>
-      <button class="btn btn-secondary" onclick="showAdmin()">الإدارة</button>
-      <button class="btn btn-ghost" onclick="doLogout()">خروج</button>
+      <span class="nav-user" id="nav-name"></span>
+      <button class="btn btn-outline btn-sm" onclick="showAdmin()">⚙ الإدارة</button>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">خروج</button>
     </div>
   </nav>
-  <div class="search-wrap">
-    <div class="search-title">
-      <h2 style="font-size:20px;font-weight:600;">ابحث عن صاحب الرقم</h2>
-      <p style="font-size:13px;color:#888;margin-top:6px;">أدخل رقم الهاتف كاملاً مع رمز الدولة</p>
+
+  <div class="search-hero">
+    <h2>ابحث عن <span>صاحب الرقم</span></h2>
+    <p>أدخل رقم الهاتف كاملاً مع رمز الدولة</p>
+    <div class="search-box">
+      <input id="sp" type="tel" placeholder="+213 0XX XXX XXXX"
+        onkeydown="if(event.key==='Enter')search()"/>
+      <button class="search-btn" onclick="search()">بحث</button>
     </div>
-    <div class="search-bar">
-      <input type="tel" id="search-phone" class="form-input" placeholder="+213 0XX XXX XXXX" onkeydown="if(event.key==='Enter')doSearch()"/>
-      <button class="btn btn-primary" style="padding:10px 22px;font-size:14px;" onclick="doSearch()">بحث</button>
-    </div>
-    <div id="search-result"></div>
-    <div id="db-count" class="db-count"></div>
+  </div>
+
+  <div class="search-result-wrap">
+    <div id="sr"></div>
+    <div id="dbc" class="db-count"></div>
   </div>
 </div>
 
-<!-- ==============================
-     صفحة الإدارة
-     ============================== -->
+<!-- ══ ADMIN ══ -->
 <div id="page-admin" class="page">
   <nav class="nav">
-    <div class="nav-logo"><span>☎</span> لوحة الإدارة</div>
+    <div class="nav-brand">
+      <div class="dot">☎</div>
+      دليل <span>المتصلين</span>
+    </div>
     <div class="nav-actions">
-      <span class="nav-user" id="nav-username2"></span>
-      <button class="btn btn-secondary" onclick="showPage('page-search')">البحث</button>
-      <button class="btn btn-ghost" onclick="doLogout()">خروج</button>
+      <span class="nav-user" id="nav-name2"></span>
+      <button class="btn btn-outline btn-sm" onclick="showPage('page-search')">البحث</button>
+      <button class="btn btn-ghost btn-sm" onclick="logout()">خروج</button>
     </div>
   </nav>
-  <div class="admin-wrap">
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-num" id="stat-contacts">—</div><div class="stat-label">جهة اتصال</div></div>
-      <div class="stat-card"><div class="stat-num" id="stat-admins">—</div><div class="stat-label">مديرون</div></div>
-    </div>
-    <div class="tabs" id="admin-tabs"></div>
-    <div id="flash-msg"></div>
-    <div id="admin-content"></div>
+  <div class="admin-layout">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="admin-content" id="ac"></div>
   </div>
 </div>
 
+<div id="flash-el" style="display:none;"></div>
+
 <script>
-// ============================================================
-// CONFIG
-// ============================================================
-let SUPABASE_URL='https://pkhxklyvceziwvsouqtf.supabase.co';
-let SUPABASE_KEY='sb_publishable_bai8bydtlypGXFZn_C49GA_ryeWFPG9';
-let sb=null;
-let currentUser=null;
+// ═══════════════════════════════
+const SB_URL='https://pkhxklyvceziwvsouqtf.supabase.co';
+const SB_KEY='sb_publishable_bai8bydtlypGXFZn_C49GA_ryeWFPG9';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+// ═══════════════════════════════
 
 const COUNTRIES=['الجزائر','السعودية','مصر','الإمارات','الكويت','قطر','البحرين','عمان','العراق','الأردن','لبنان','سوريا','فلسطين','ليبيا','تونس','المغرب','السودان','اليمن','الصومال','موريتانيا','أخرى'];
+let me=null,editId=null,atab='contacts';
 
-// ============================================================
-// INIT
-// ============================================================
-(function init(){
-  SUPABASE_URL='https://pkhxklyvceziwvsouqtf.supabase.co';
-  SUPABASE_KEY='sb_publishable_bai8bydtlypGXFZn_C49GA_ryeWFPG9';
-  sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-  showPage('page-login');
-})();
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');}
 
-function saveConfig(){
-  const url=document.getElementById('cfg-url').value.trim();
-  const key=document.getElementById('cfg-key').value.trim();
-  const err=document.getElementById('cfg-error');
-  if(!url||!key){err.style.display='block';err.textContent='يرجى إدخال URL والـ Key';return;}
-  if(!url.startsWith('https://')){err.style.display='block';err.textContent='الـ URL يجب أن يبدأ بـ https://';return;}
-  localStorage.setItem('sb_url',url);
-  localStorage.setItem('sb_key',key);
-  SUPABASE_URL=url; SUPABASE_KEY=key;
-  sb=supabase.createClient(url,key);
-  err.style.display='none';
-  showPage('page-login');
-}
+async function sha256(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
 
-// ============================================================
-// UTILITIES
-// ============================================================
-function showPage(id){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-async function sha256(msg){
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(msg));
-  return [...new Uint8Array(buf)].map(x=>x.toString(16).padStart(2,'0')).join('');
-}
-
-function normalizePhone(p){return p.replace(/[\s\-\(\)\.]/g,'');}
+function norm(p){return p.replace(/[\s\-\(\)\.]/g,'');}
 
 function flash(msg,ok=true){
-  const el=document.getElementById('flash-msg');
-  el.innerHTML=`<div class="alert ${ok?'alert-success':'alert-danger'}">${msg}</div>`;
-  setTimeout(()=>{el.innerHTML='';},3000);
+  const el=document.getElementById('flash-el');
+  el.className='flash '+(ok?'flash-ok':'flash-err');
+  el.textContent=msg;el.style.display='block';
+  setTimeout(()=>{el.style.display='none';},3000);
 }
 
-// ============================================================
-// AUTH
-// ============================================================
-async function doLogin(){
-  const u=document.getElementById('login-user').value.trim();
-  const p=document.getElementById('login-pass').value.trim();
-  const err=document.getElementById('login-error');
-  if(!u||!p){err.style.display='block';err.textContent='أدخل اسم المستخدم وكلمة المرور';return;}
+// ── AUTH ──
+async function login(){
+  const u=document.getElementById('lu').value.trim();
+  const p=document.getElementById('lp').value.trim();
+  const err=document.getElementById('lerr');
+  if(!u||!p){err.style.display='block';err.textContent='أدخل بيانات الدخول';return;}
   const h=await sha256(p);
   try{
     const {data,error}=await sb.from('admins').select('*').eq('username',u).eq('password_hash',h).single();
     if(error||!data){err.style.display='block';err.textContent='بيانات الدخول غير صحيحة';return;}
-    currentUser=data;
-    document.getElementById('nav-username').textContent=data.full_name;
-    document.getElementById('nav-username2').textContent=data.full_name;
+    me=data;
+    document.getElementById('nav-name').textContent=me.full_name;
+    document.getElementById('nav-name2').textContent=me.full_name;
+    document.getElementById('lu').value='';document.getElementById('lp').value='';
     err.style.display='none';
-    document.getElementById('login-user').value='';
-    document.getElementById('login-pass').value='';
-    showPage('page-search');
-    loadDbCount();
-  }catch(e){err.style.display='block';err.textContent='خطأ في الاتصال بقاعدة البيانات';}
+    showPage('page-search');loadCount();
+  }catch(e){err.style.display='block';err.textContent='خطأ في الاتصال';}
 }
+function logout(){me=null;showPage('page-login');}
 
-function doLogout(){
-  currentUser=null;
-  showPage('page-login');
-}
-
-// ============================================================
-// SEARCH
-// ============================================================
-async function doSearch(){
-  const phone=document.getElementById('search-phone').value.trim();
-  if(!phone)return;
-  const n=normalizePhone(phone);
-  const res=document.getElementById('search-result');
-  res.innerHTML='<div class="loading">جاري البحث...</div>';
+// ── SEARCH ──
+async function search(){
+  const raw=document.getElementById('sp').value.trim();
+  if(!raw)return;
+  const n=norm(raw);
+  const el=document.getElementById('sr');
+  el.innerHTML='<div class="loading">جاري البحث...</div>';
   try{
     const {data}=await sb.from('contacts').select('*');
-    const found=(data||[]).find(c=>{
-      const cn=normalizePhone(c.phone);
-      return cn===n||cn.endsWith(n)||n.endsWith(cn);
-    });
-    if(found){
-      res.innerHTML=`
-        <div class="card card-found">
+    const f=(data||[]).find(c=>{const cn=norm(c.phone);return cn===n||cn.endsWith(n)||n.endsWith(cn);});
+    if(f){
+      el.innerHTML=`
+        <div class="card card-gold result-card">
           <div class="result-header">
-            <div class="avatar">${found.name.charAt(0)}</div>
+            <div class="avatar">${f.name.charAt(0)}</div>
             <div style="flex:1">
-              <div class="result-name">${found.name}</div>
-              ${found.specialty?`<div class="result-spec">${found.specialty}</div>`:''}
+              <div class="result-name">${f.name}</div>
+              ${f.specialty?`<div class="result-spec">${f.specialty}</div>`:''}
             </div>
-            <span class="badge badge-success">موجود</span>
+            <span class="badge badge-success">موجود ✓</span>
           </div>
           <table class="result-table">
-            <tr><td>الهاتف</td><td style="direction:ltr;text-align:left;font-family:monospace;">${found.phone}</td></tr>
-            ${found.country?`<tr><td>الدولة</td><td>${found.country}</td></tr>`:''}
-            ${found.notes?`<tr><td style="vertical-align:top">ملاحظات</td><td>${found.notes}</td></tr>`:''}
-            ${found.added_by?`<tr><td>أضافه</td><td style="color:#aaa;font-size:12px;">${found.added_by} · ${found.added_at||''}</td></tr>`:''}
+            <tr><td>الهاتف</td><td style="direction:ltr;font-family:monospace;color:var(--text)">${f.phone}</td></tr>
+            ${f.country?`<tr><td>الدولة</td><td>${f.country}</td></tr>`:''}
+            ${f.notes?`<tr><td>ملاحظات</td><td style="color:var(--text2)">${f.notes}</td></tr>`:''}
+            ${f.added_by?`<tr><td>أضافه</td><td style="color:var(--text3);font-size:12px">${f.added_by} · ${f.added_at||''}</td></tr>`:''}
           </table>
         </div>`;
     }else{
-      res.innerHTML=`
-        <div class="card not-found">
-          <div class="not-found-icon">?</div>
-          <p style="font-size:15px;font-weight:500;color:#666;margin-bottom:6px;">الرقم غير موجود في قاعدة البيانات</p>
-          <p style="font-size:13px;color:#aaa;">يمكنك البحث في المنصات الخارجية</p>
-          <div class="ext-links">
-            <a href="https://www.truecaller.com/search/int/${encodeURIComponent(phone)}" target="_blank" class="btn btn-info">🔍 Truecaller</a>
-            <a href="https://www.google.com/search?q=${encodeURIComponent(phone)}" target="_blank" class="btn btn-secondary">🔍 Google</a>
+      const enc=encodeURIComponent(raw);
+      el.innerHTML=`
+        <div class="card not-found-card result-card">
+          <div class="not-found-icon">🔍</div>
+          <h3>الرقم غير موجود في قاعدة البيانات</h3>
+          <p>ابحث في المنصات الخارجية مباشرة</p>
+          <div class="ext-grid">
+            <a href="https://www.google.com/search?q=${enc}+من+يكون" target="_blank"
+              class="ext-btn" style="background:#1a2a3a;color:#7ab4e8;border:0.5px solid #2a4a6a;">
+              🌐 Google
+            </a>
+            <a href="https://www.truecaller.com/search/dz/${enc.replace(/%2B/g,'')}" target="_blank"
+              class="ext-btn" style="background:#1a3a2a;color:#7ae8a4;border:0.5px solid #2a6a4a;">
+              📞 Truecaller
+            </a>
+            <a href="https://wa.me/${enc.replace(/%2B/g,'')}" target="_blank"
+              class="ext-btn" style="background:#1a3a1a;color:#7ae87a;border:0.5px solid #2a6a2a;">
+              💬 WhatsApp
+            </a>
+            <a href="https://www.google.com/maps/search/${enc}" target="_blank"
+              class="ext-btn" style="background:#3a2a1a;color:#e8c47a;border:0.5px solid #6a4a2a;">
+              📍 Maps
+            </a>
           </div>
         </div>`;
     }
-  }catch(e){res.innerHTML='<div class="alert alert-danger">خطأ في الاتصال بقاعدة البيانات</div>';}
+  }catch(e){el.innerHTML='<div class="alert alert-danger">خطأ في الاتصال بقاعدة البيانات</div>';}
 }
 
-async function loadDbCount(){
+async function loadCount(){
   const {count}=await sb.from('contacts').select('*',{count:'exact',head:true});
-  const el=document.getElementById('db-count');
-  if(el)el.textContent=count?`${count} جهة اتصال في قاعدة البيانات`:'';
+  document.getElementById('dbc').textContent=count?`${count} جهة اتصال في القاعدة`:'';
 }
 
-// ============================================================
-// ADMIN
-// ============================================================
-let adminTab='contacts';
-let editingContact=null;
-
+// ── ADMIN ──
 async function showAdmin(){
   showPage('page-admin');
-  buildTabs();
-  await loadStats();
-  renderTab();
+  buildSidebar();await loadStats();renderTab();
 }
 
-function buildTabs(){
-  const isSA=currentUser?.role==='superadmin';
-  const tabs=[
-    {k:'contacts',l:'جهات الاتصال'},
-    {k:'addContact',l:'+ إضافة جهة'},
-    ...(isSA?[{k:'admins',l:'المديرون'},{k:'addAdmin',l:'+ مدير'}]:[])
+function buildSidebar(){
+  const isSA=me?.role==='superadmin';
+  const items=[
+    {k:'contacts',icon:'📋',l:'جهات الاتصال'},
+    {k:'addContact',icon:'➕',l:'إضافة جهة'},
+    ...(isSA?[{k:'sep'},{k:'admins',icon:'👥',l:'المديرون'},{k:'addAdmin',icon:'👤',l:'إضافة مدير'}]:[])
   ];
-  document.getElementById('admin-tabs').innerHTML=tabs.map(t=>
-    `<button class="tab ${adminTab===t.k?'active':''}" onclick="switchTab('${t.k}')">${t.l}</button>`
+  document.getElementById('sidebar').innerHTML=items.map(i=>
+    i.k==='sep'?'<div class="sidebar-sep"></div>':`
+    <div class="sidebar-item ${atab===i.k?'active':''}" onclick="switchTab('${i.k}')">
+      <span class="sidebar-icon">${i.icon}</span>${i.l}
+    </div>`
   ).join('');
 }
 
-function switchTab(k){
-  adminTab=k;
-  editingContact=null;
-  buildTabs();
-  renderTab();
-  document.getElementById('flash-msg').innerHTML='';
-}
+function switchTab(k){atab=k;editId=null;buildSidebar();renderTab();}
 
 async function loadStats(){
-  const [{count:c1},{count:c2}]=await Promise.all([
+  const [r1,r2]=await Promise.all([
     sb.from('contacts').select('*',{count:'exact',head:true}),
     sb.from('admins').select('*',{count:'exact',head:true})
   ]);
-  document.getElementById('stat-contacts').textContent=c1||0;
-  document.getElementById('stat-admins').textContent=c2||0;
-}
-
-function renderTab(){
-  if(adminTab==='contacts')renderContacts();
-  else if(adminTab==='addContact')renderAddContact();
-  else if(adminTab==='admins')renderAdmins();
-  else if(adminTab==='addAdmin')renderAddAdmin();
-}
-
-// -- Contacts list --
-async function renderContacts(){
-  const el=document.getElementById('admin-content');
-  el.innerHTML='<div class="loading">جاري التحميل...</div>';
-  const {data}=await sb.from('contacts').select('*').order('created_at',{ascending:false});
-  const contacts=data||[];
-  if(!contacts.length){
-    el.innerHTML=`<div class="card not-found"><p style="color:#888;margin-bottom:14px;">لا توجد جهات اتصال بعد</p><button class="btn btn-primary" onclick="switchTab('addContact')">أضف الآن</button></div>`;
-    return;
+  if(atab==='contacts'||atab==='addContact'){
+    document.getElementById('ac').innerHTML=`
+      <div class="stats-row">
+        <div class="stat"><div class="stat-num">${r1.count||0}</div><div class="stat-label">جهات الاتصال</div></div>
+        <div class="stat"><div class="stat-num">${r2.count||0}</div><div class="stat-label">مديرون</div></div>
+      </div>`;
   }
-  el.innerHTML=`
-    <input class="form-input" placeholder="بحث في جهات الاتصال..." style="margin-bottom:14px;" oninput="filterContacts(this.value)" id="contact-search"/>
-    <div id="contacts-list"></div>`;
-  renderContactsList(contacts);
 }
 
-function renderContactsList(contacts){
-  const el=document.getElementById('contacts-list');
-  if(!el)return;
-  el.innerHTML=contacts.map(c=>`
+async function renderTab(){
+  if(atab==='contacts')await renderContacts();
+  else if(atab==='addContact')renderForm();
+  else if(atab==='admins')await renderAdmins();
+  else if(atab==='addAdmin')renderAdminForm();
+}
+
+async function renderContacts(){
+  await loadStats();
+  const {data}=await sb.from('contacts').select('*').order('created_at',{ascending:false});
+  const c=data||[];
+  const el=document.getElementById('ac');
+  const existing=el.querySelector('.stats-row')?.outerHTML||'';
+  el.innerHTML=existing+`
+    <div class="tab-title">جهات الاتصال</div>
+    <div class="tab-subtitle">المجموع: ${c.length} جهة</div>
+    <input class="form-input" placeholder="ابحث بالاسم أو الرقم..." style="margin-bottom:14px;"
+      oninput="filterC(this.value,'${JSON.stringify(c).replace(/'/g,"\\'")}');" id="csearch"/>
+    <div id="clist">${renderCList(c)}</div>`;
+}
+
+function renderCList(contacts){
+  if(!contacts.length)return`<div class="empty-state"><div class="empty-icon">📭</div><p>لا توجد جهات اتصال بعد</p><button class="btn btn-gold" onclick="switchTab('addContact')">أضف الآن</button></div>`;
+  return contacts.map(c=>`
     <div class="contact-row">
       <div class="avatar avatar-sm">${c.name.charAt(0)}</div>
       <div class="contact-info">
@@ -498,118 +584,129 @@ function renderContactsList(contacts){
         <div class="contact-sub">${c.phone}${c.specialty?' · '+c.specialty:''}${c.country?' · '+c.country:''}</div>
       </div>
       <div class="contact-actions">
-        <button class="btn btn-secondary" style="padding:4px 10px;font-size:12px;" onclick="startEdit('${c.id}')">تعديل</button>
-        <button class="btn btn-danger" style="padding:4px 10px;font-size:12px;" onclick="deleteContact('${c.id}')">حذف</button>
+        <button class="btn btn-outline btn-sm" onclick="startEdit('${c.id}')">تعديل</button>
+        <button class="btn btn-danger btn-sm" onclick="delContact('${c.id}')">حذف</button>
       </div>
     </div>`).join('');
 }
 
-let allContacts=[];
-async function filterContacts(q){
-  if(!allContacts.length){const {data}=await sb.from('contacts').select('*');allContacts=data||[];}
-  const filtered=q?allContacts.filter(c=>c.name.includes(q)||c.phone.includes(q)||c.specialty?.includes(q)):allContacts;
-  renderContactsList(filtered);
+let _allC=[];
+async function filterC(q,_){
+  if(!_allC.length){const{data}=await sb.from('contacts').select('*');_allC=data||[];}
+  const r=q?_allC.filter(c=>c.name.includes(q)||c.phone.includes(q)||c.specialty?.includes(q)):_allC;
+  const el=document.getElementById('clist');if(el)el.innerHTML=renderCList(r);
 }
 
-// -- Add/Edit contact --
-function renderAddContact(){
-  const c=editingContact||{};
-  document.getElementById('admin-content').innerHTML=`
+function renderForm(){
+  const c=editId?{}:{};
+  const el=document.getElementById('ac');
+  const existing=el.querySelector('.stats-row')?.outerHTML||'';
+  el.innerHTML=existing+`
+    <div class="tab-title">${editId?'تعديل جهة الاتصال':'إضافة جهة جديدة'}</div>
+    <div class="tab-subtitle">${editId?'عدّل المعلومات وانقر حفظ':'أدخل معلومات جهة الاتصال الجديدة'}</div>
     <div class="card">
-      <h3 style="font-size:15px;font-weight:600;margin-bottom:18px;">${editingContact?'تعديل جهة الاتصال':'إضافة جهة اتصال جديدة'}</h3>
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">الاسم الكامل *</label>
-          <input class="form-input" id="cf-name" value="${c.name||''}" placeholder="اسم الشخص"/>
+          <input class="form-input" id="cf-name" placeholder="اسم الشخص"/>
         </div>
         <div class="form-group">
           <label class="form-label">رقم الهاتف *</label>
-          <input class="form-input" id="cf-phone" value="${c.phone||''}" placeholder="+213XXXXXXXXX" dir="ltr"/>
+          <input class="form-input" id="cf-phone" placeholder="+213XXXXXXXXX" dir="ltr"/>
         </div>
         <div class="form-group">
           <label class="form-label">التخصص / المجال</label>
-          <input class="form-input" id="cf-spec" value="${c.specialty||''}" placeholder="باحث سياسي، داعية، محامي..."/>
+          <input class="form-input" id="cf-spec" placeholder="باحث سياسي، داعية، أكاديمي..."/>
         </div>
         <div class="form-group">
           <label class="form-label">الدولة</label>
           <select class="form-input" id="cf-country">
-            ${COUNTRIES.map(ct=>`<option ${(c.country||'الجزائر')===ct?'selected':''}>${ct}</option>`).join('')}
+            ${COUNTRIES.map(ct=>`<option>${ct}</option>`).join('')}
           </select>
         </div>
       </div>
       <div class="form-group">
         <label class="form-label">ملاحظات</label>
-        <textarea class="form-input" id="cf-notes" rows="3" placeholder="معلومات إضافية...">${c.notes||''}</textarea>
+        <textarea class="form-input" id="cf-notes" placeholder="معلومات إضافية، مؤسسة، موقع إلكتروني..."></textarea>
       </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-primary" style="padding:9px 22px;" onclick="saveContact()">${editingContact?'حفظ التعديلات':'إضافة'}</button>
-        <button class="btn btn-ghost" style="padding:9px 16px;" onclick="switchTab('contacts')">إلغاء</button>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button class="btn btn-gold" style="padding:10px 24px;" onclick="saveContact()">${editId?'حفظ التعديلات':'إضافة جهة'}</button>
+        <button class="btn btn-outline" onclick="switchTab('contacts')">إلغاء</button>
       </div>
     </div>`;
+  if(editId)fillForm();
+}
+
+async function fillForm(){
+  const{data}=await sb.from('contacts').select('*').eq('id',editId).single();
+  if(!data)return;
+  document.getElementById('cf-name').value=data.name||'';
+  document.getElementById('cf-phone').value=data.phone||'';
+  document.getElementById('cf-spec').value=data.specialty||'';
+  document.getElementById('cf-notes').value=data.notes||'';
+  const sel=document.getElementById('cf-country');
+  if(sel)sel.value=data.country||'الجزائر';
 }
 
 async function saveContact(){
   const name=document.getElementById('cf-name').value.trim();
   const phone=document.getElementById('cf-phone').value.trim();
-  const specialty=document.getElementById('cf-spec').value.trim();
-  const country=document.getElementById('cf-country').value;
-  const notes=document.getElementById('cf-notes').value.trim();
-  if(!name||!phone){flash('الاسم ورقم الهاتف مطلوبان',false);return;}
-  const payload={name,phone,specialty,country,notes,added_by:currentUser.full_name,added_at:new Date().toLocaleDateString('ar-DZ')};
+  if(!name||!phone){flash('الاسم والرقم مطلوبان',false);return;}
+  const payload={name,phone,
+    specialty:document.getElementById('cf-spec').value.trim(),
+    country:document.getElementById('cf-country').value,
+    notes:document.getElementById('cf-notes').value.trim(),
+    added_by:me.full_name,
+    added_at:new Date().toLocaleDateString('ar-DZ')
+  };
   let err;
-  if(editingContact){
-    ({error:err}=await sb.from('contacts').update(payload).eq('id',editingContact.id));
-  }else{
-    ({error:err}=await sb.from('contacts').insert([payload]));
-  }
+  if(editId){({error:err}=await sb.from('contacts').update(payload).eq('id',editId));}
+  else{({error:err}=await sb.from('contacts').insert([payload]));}
   if(err){flash('حدث خطأ: '+err.message,false);return;}
-  flash(editingContact?'تم التعديل بنجاح ✓':'تمت الإضافة بنجاح ✓');
-  editingContact=null;
-  await loadStats();
-  setTimeout(()=>switchTab('contacts'),1200);
+  flash(editId?'تم التعديل بنجاح ✓':'تمت الإضافة بنجاح ✓');
+  editId=null;_allC=[];
+  setTimeout(()=>switchTab('contacts'),1000);
 }
 
 async function startEdit(id){
-  const {data}=await sb.from('contacts').select('*').eq('id',id).single();
-  editingContact=data;
-  adminTab='addContact';
-  buildTabs();
-  renderTab();
+  editId=id;atab='addContact';buildSidebar();renderForm();
 }
 
-async function deleteContact(id){
+async function delContact(id){
   if(!confirm('حذف هذه الجهة؟'))return;
   await sb.from('contacts').delete().eq('id',id);
-  flash('تم الحذف');
-  await loadStats();
-  renderContacts();
+  _allC=[];flash('تم الحذف');
+  await renderContacts();
 }
 
-// -- Admins list --
 async function renderAdmins(){
-  const el=document.getElementById('admin-content');
-  el.innerHTML='<div class="loading">جاري التحميل...</div>';
-  const {data}=await sb.from('admins').select('*').order('created_at');
-  const admins=data||[];
-  el.innerHTML=admins.map(a=>`
+  const{data}=await sb.from('admins').select('*').order('created_at');
+  const el=document.getElementById('ac');
+  el.innerHTML=`
+    <div class="tab-title">المديرون</div>
+    <div class="tab-subtitle">قائمة المديرين المُصرَّح لهم</div>
+    ${(data||[]).map(a=>`
     <div class="contact-row">
-      <div class="avatar avatar-sm" style="${a.role==='superadmin'?'background:var(--brand-bg);color:var(--brand);border-color:var(--brand-border)':''}">
+      <div class="avatar avatar-sm" style="${a.role==='superadmin'?'':'background:var(--bg4);color:var(--text2);border-color:var(--border);'}">
         ${a.role==='superadmin'?'★':'○'}
       </div>
       <div class="contact-info">
         <div class="contact-name">${a.full_name}</div>
-        <div class="contact-sub">${a.username} · ${a.role==='superadmin'?'مدير رئيسي':'مدير'}</div>
+        <div class="contact-sub" style="direction:rtl;text-align:right;">${a.username} · ${a.role==='superadmin'?'مدير رئيسي':'مدير'}</div>
       </div>
       <div class="contact-actions">
-        ${a.username!=='admin'?`<button class="btn btn-danger" style="padding:4px 10px;font-size:12px;" onclick="deleteAdmin('${a.id}')">حذف</button>`:'<span class="badge badge-muted">رئيسي</span>'}
+        ${a.username!=='admin'
+          ?`<button class="btn btn-danger btn-sm" onclick="delAdmin('${a.id}')">حذف</button>`
+          :'<span class="badge badge-gold">رئيسي</span>'}
       </div>
-    </div>`).join('');
+    </div>`).join('')}`;
 }
 
-function renderAddAdmin(){
-  document.getElementById('admin-content').innerHTML=`
+function renderAdminForm(){
+  document.getElementById('ac').innerHTML=`
+    <div class="tab-title">إضافة مدير جديد</div>
+    <div class="tab-subtitle">أضف عضواً من الفريق كمدير</div>
     <div class="card">
-      <h3 style="font-size:15px;font-weight:600;margin-bottom:18px;">إضافة مدير جديد</h3>
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">الاسم الكامل *</label>
@@ -621,19 +718,19 @@ function renderAddAdmin(){
         </div>
         <div class="form-group">
           <label class="form-label">كلمة المرور *</label>
-          <input type="password" class="form-input" id="af-pass" placeholder="كلمة المرور"/>
+          <input type="password" class="form-input" id="af-pass" placeholder="كلمة مرور قوية"/>
         </div>
         <div class="form-group">
-          <label class="form-label">الصلاحية</label>
+          <label class="form-label">مستوى الصلاحية</label>
           <select class="form-input" id="af-role">
-            <option value="admin">مدير</option>
+            <option value="admin">مدير عادي</option>
             <option value="superadmin">مدير رئيسي</option>
           </select>
         </div>
       </div>
-      <div style="display:flex;gap:8px;margin-top:4px;">
-        <button class="btn btn-primary" style="padding:9px 22px;" onclick="saveAdmin()">إضافة مدير</button>
-        <button class="btn btn-ghost" style="padding:9px 16px;" onclick="switchTab('admins')">إلغاء</button>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button class="btn btn-gold" style="padding:10px 24px;" onclick="saveAdmin()">إضافة مدير</button>
+        <button class="btn btn-outline" onclick="switchTab('admins')">إلغاء</button>
       </div>
     </div>`;
 }
@@ -645,21 +742,18 @@ async function saveAdmin(){
   const role=document.getElementById('af-role').value;
   if(!name||!username||!pass){flash('جميع الحقول مطلوبة',false);return;}
   const h=await sha256(pass);
-  const {error}=await sb.from('admins').insert([{username,password_hash:h,full_name:name,role}]);
-  if(error){flash(error.code==='23505'?'اسم المستخدم مستخدم مسبقاً':'حدث خطأ: '+error.message,false);return;}
-  flash('تمت إضافة المدير بنجاح ✓');
-  await loadStats();
-  setTimeout(()=>switchTab('admins'),1200);
+  const{error}=await sb.from('admins').insert([{username,password_hash:h,full_name:name,role}]);
+  if(error){flash(error.code==='23505'?'اسم المستخدم مستخدم مسبقاً':'خطأ: '+error.message,false);return;}
+  flash('تمت إضافة المدير ✓');
+  setTimeout(()=>switchTab('admins'),1000);
 }
 
-async function deleteAdmin(id){
+async function delAdmin(id){
   if(!confirm('حذف هذا المدير؟'))return;
   await sb.from('admins').delete().eq('id',id);
   flash('تم حذف المدير');
-  await loadStats();
-  renderAdmins();
+  await renderAdmins();
 }
 </script>
 </body>
 </html>
-HTMLEOF
