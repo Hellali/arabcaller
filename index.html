@@ -467,7 +467,7 @@ async function search(){
       el.innerHTML=`
         <div class="card card-gold result-card">
           <div class="result-header">
-            <div class="avatar">${f.name.charAt(0)}</div>
+            <div class="avatar" style="${f.photo?'padding:0;overflow:hidden;':''}">\n              ${f.photo?`<img src="${f.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`:f.name.charAt(0)}\n            </div>
             <div style="flex:1">
               <div class="result-name">${f.name}</div>
               ${f.specialty?`<div class="result-spec">${f.specialty}</div>`:''}
@@ -578,7 +578,7 @@ function renderCList(contacts){
   if(!contacts.length)return`<div class="empty-state"><div class="empty-icon">📭</div><p>لا توجد جهات اتصال بعد</p><button class="btn btn-gold" onclick="switchTab('addContact')">أضف الآن</button></div>`;
   return contacts.map(c=>`
     <div class="contact-row">
-      <div class="avatar avatar-sm">${c.name.charAt(0)}</div>
+      <div class="avatar avatar-sm" style="${c.photo?'padding:0;overflow:hidden;':''}">${c.photo?`<img src="${c.photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`:c.name.charAt(0)}</div>
       <div class="contact-info">
         <div class="contact-name">${c.name}</div>
         <div class="contact-sub">${c.phone}${c.specialty?' · '+c.specialty:''}${c.country?' · '+c.country:''}</div>
@@ -598,13 +598,35 @@ async function filterC(q,_){
 }
 
 function renderForm(){
-  const c=editId?{}:{};
   const el=document.getElementById('ac');
   const existing=el.querySelector('.stats-row')?.outerHTML||'';
   el.innerHTML=existing+`
     <div class="tab-title">${editId?'تعديل جهة الاتصال':'إضافة جهة جديدة'}</div>
     <div class="tab-subtitle">${editId?'عدّل المعلومات وانقر حفظ':'أدخل معلومات جهة الاتصال الجديدة'}</div>
     <div class="card">
+
+      <!-- صورة الشخص -->
+      <div class="form-group" style="display:flex;align-items:center;gap:20px;margin-bottom:24px;padding-bottom:20px;border-bottom:0.5px solid var(--border);">
+        <div id="photo-preview" style="
+          width:90px;height:90px;border-radius:50%;
+          background:var(--gold-dim);border:2px dashed var(--gold-border);
+          display:flex;align-items:center;justify-content:center;
+          font-size:32px;color:var(--gold);flex-shrink:0;
+          overflow:hidden;cursor:pointer;transition:all .2s;
+        " onclick="document.getElementById('cf-photo').click()" title="انقر لرفع صورة">
+          📷
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px;">صورة الشخص</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:10px;">اختياري — JPG أو PNG بحجم أقصى 1MB</div>
+          <div style="display:flex;gap:8px;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('cf-photo').click()">رفع صورة</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="remove-photo-btn" style="display:none;color:var(--danger-text);" onclick="removePhoto()">حذف الصورة</button>
+          </div>
+          <input type="file" id="cf-photo" accept="image/*" style="display:none;" onchange="previewPhoto(this)"/>
+        </div>
+      </div>
+
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">الاسم الكامل *</label>
@@ -637,6 +659,32 @@ function renderForm(){
   if(editId)fillForm();
 }
 
+let _photoB64=null;
+
+function previewPhoto(input){
+  const file=input.files[0];
+  if(!file)return;
+  if(file.size>1024*1024){flash('حجم الصورة أكبر من 1MB',false);return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    _photoB64=e.target.result;
+    const prev=document.getElementById('photo-preview');
+    prev.innerHTML=`<img src="${_photoB64}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`;
+    prev.style.border='2px solid var(--gold-border)';
+    document.getElementById('remove-photo-btn').style.display='inline-flex';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePhoto(){
+  _photoB64=null;
+  const prev=document.getElementById('photo-preview');
+  prev.innerHTML='📷';
+  prev.style.border='2px dashed var(--gold-border)';
+  document.getElementById('remove-photo-btn').style.display='none';
+  document.getElementById('cf-photo').value='';
+}
+
 async function fillForm(){
   const{data}=await sb.from('contacts').select('*').eq('id',editId).single();
   if(!data)return;
@@ -646,6 +694,16 @@ async function fillForm(){
   document.getElementById('cf-notes').value=data.notes||'';
   const sel=document.getElementById('cf-country');
   if(sel)sel.value=data.country||'الجزائر';
+  if(data.photo){
+    _photoB64=data.photo;
+    const prev=document.getElementById('photo-preview');
+    if(prev){
+      prev.innerHTML='<img src="'+data.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>';
+      prev.style.border='2px solid var(--gold-border)';
+      const rb=document.getElementById('remove-photo-btn');
+      if(rb)rb.style.display='inline-flex';
+    }
+  }else{_photoB64=null;}
 }
 
 async function saveContact(){
@@ -657,7 +715,8 @@ async function saveContact(){
     country:document.getElementById('cf-country').value,
     notes:document.getElementById('cf-notes').value.trim(),
     added_by:me.full_name,
-    added_at:new Date().toLocaleDateString('ar-DZ')
+    added_at:new Date().toLocaleDateString('ar-DZ'),
+    photo:_photoB64||null
   };
   let err;
   if(editId){({error:err}=await sb.from('contacts').update(payload).eq('id',editId));}
