@@ -213,9 +213,9 @@ textarea.form-input{resize:vertical;min-height:80px;}
   </nav>
   <div class="search-hero">
     <h2>ابحث عن <span>صاحب الرقم</span></h2>
-    <p>أدخل رقم الهاتف كاملاً مع رمز الدولة</p>
+    <p>ابحث برقم الهاتف أو الاسم أو التخصص أو أي كلمة من معلومات الشخص</p>
     <div class="search-box">
-      <input id="sp" type="tel" placeholder="+213 0XX XXX XXXX" onkeydown="if(event.key==='Enter')doSearch()"/>
+      <input id="sp" type="tel" placeholder="رقم هاتف أو اسم أو تخصص..." onkeydown="if(event.key==='Enter')doSearch()"/>
       <button class="search-btn" onclick="doSearch()">بحث</button>
     </div>
   </div>
@@ -248,6 +248,29 @@ textarea.form-input{resize:vertical;min-height:80px;}
 const SB_URL='https://pkhxklyvceziwvsouqtf.supabase.co';
 const SB_KEY='sb_publishable_bai8bydtlypGXFZn_C49GA_ryeWFPG9';
 const sb=supabase.createClient(SB_URL,SB_KEY);
+const STORAGE_URL=SB_URL+'/storage/v1/object/public/photos/';
+
+async function uploadPhoto(base64orFile, folder='contacts'){
+  // Convert base64 to blob if needed
+  let blob;
+  if(typeof base64orFile==='string'&&base64orFile.startsWith('data:')){
+    const res=await fetch(base64orFile);
+    blob=await res.blob();
+  } else {
+    blob=base64orFile;
+  }
+  const ext=blob.type.includes('png')?'png':'jpg';
+  const fname=folder+'/'+Date.now()+'_'+Math.random().toString(36).slice(2)+'.'+ext;
+  const{data,error}=await sb.storage.from('photos').upload(fname,blob,{contentType:blob.type||'image/jpeg',upsert:false});
+  if(error)throw error;
+  return STORAGE_URL+fname;
+}
+
+async function deletePhoto(url){
+  if(!url||!url.includes('/photos/'))return;
+  const path=url.split('/photos/')[1];
+  await sb.storage.from('photos').remove([path]);
+}
 
 const COUNTRIES=['الجزائر','السعودية','مصر','الإمارات','الكويت','قطر','البحرين','عمان','العراق','الأردن','لبنان','سوريا','فلسطين','ليبيا','تونس','المغرب','السودان','اليمن','الصومال','موريتانيا','أخرى'];
 let me=null, editId=null, atab='contacts', _allC=[], _photoB64=null, _cropData={scale:1,x:0,y:0};
@@ -313,62 +336,109 @@ function setNavUser(){
 
 function doLogout(){me=null;editId=null;atab='contacts';_allC=[];showPage('page-login');}
 
-// ══ SEARCH ══
+// ══ SMART SEARCH ══
+function isPhoneQuery(q){return /^[\d\+\s\-\(\)\.]+$/.test(q)&&q.replace(/\D/g,'').length>=4;}
+
 async function doSearch(){
   const raw=document.getElementById('sp').value.trim();
   if(!raw)return;
-  const n=norm(raw);
   const el=document.getElementById('sr');
   el.innerHTML='<div class="loading">جاري البحث...</div>';
   try{
-    const{data}=await sb.from('contacts').select('*');
-    const f=(data||[]).find(c=>{const cn=norm(c.phone);return cn===n||cn.endsWith(n)||n.endsWith(cn);});
+    let data=[];
+    if(isPhoneQuery(raw)){
+      // Phone search: fetch all and match normalized
+      const n=norm(raw);
+      const{data:all}=await sb.from('contacts').select('*');
+      const f=(all||[]).find(c=>{const cn=norm(c.phone);return cn===n||cn.endsWith(n)||n.endsWith(cn);});
+      if(f)data=[f];
+    } else {
+      // Text search: server-side ilike across name, specialty, notes
+      const q=raw.trim();
+      const[r1,r2,r3]=await Promise.all([
+        sb.from('contacts').select('*').ilike('name','%'+q+'%'),
+        sb.from('contacts').select('*').ilike('specialty','%'+q+'%'),
+        sb.from('contacts').select('*').ilike('notes','%'+q+'%')
+      ]);
+      const seen=new Set();
+      for(const r of[r1,r2,r3]){
+        for(const c of(r.data||[])){
+          if(!seen.has(c.id)){seen.add(c.id);data.push(c);}
+        }
+      }
+    }
+    const f=data.length===1?data[0]:null;
+    const multi=data.length>1?data:null;
     if(f){
-      const photoHtml=f.photo
-        ?`<div class="avatar" style="width:60px;height:60px;cursor:zoom-in;border:2px solid var(--gold-border);" onclick="openLightbox('${f.photo}')"><img src="${f.photo}" style="width:100%;height:100%;object-fit:cover;"/></div>`
-        :`<div class="avatar" style="width:60px;height:60px;font-size:22px;">${f.name.charAt(0)}</div>`;
-      el.innerHTML=`
-        <div class="card card-gold result-card">
-          <div class="result-header">
-            ${photoHtml}
-            <div style="flex:1">
-              <div class="result-name">${f.name}</div>
-              ${f.specialty?`<div class="result-spec">${f.specialty}</div>`:''}
-            </div>
-            <span class="badge badge-success">موجود ✓</span>
-          </div>
-          <table class="result-table">
-            <tr>
-              <td>الهاتف</td>
-              <td>
-                <div class="phone-cell">
-                  <span class="phone-num">${f.phone}</span>
-                  <button class="copy-btn" onclick="copyPhone('${f.phone}')">نسخ</button>
-                </div>
-              </td>
-            </tr>
-            ${f.country?`<tr><td>الدولة</td><td style="color:var(--text)">${f.country}</td></tr>`:''}
-            ${f.notes?`<tr><td>ملاحظات</td><td style="color:var(--text2)">${f.notes}</td></tr>`:''}
-            ${f.added_by?`<tr><td>أضافه</td><td style="color:var(--text3);font-size:12px;">${f.added_by} · ${f.added_at||''}</td></tr>`:''}
-          </table>
-          ${f.photo?`<div style="margin-top:12px;padding-top:12px;border-top:0.5px solid var(--border);font-size:12px;color:var(--text3);">💡 انقر على الصورة لعرضها بالحجم الكامل</div>`:''}
-        </div>`;
-    }else{
+      el.innerHTML=renderSingleResult(f);
+    } else if(multi){
+      el.innerHTML=renderMultiResults(multi,raw);
+    } else {
       const enc=encodeURIComponent(raw);
+      const isPhone=isPhoneQuery(raw);
       el.innerHTML=`
         <div class="card not-found-card result-card">
           <div class="not-found-icon">🔍</div>
-          <h3 style="font-size:16px;font-weight:600;margin-bottom:8px;">الرقم غير موجود في قاعدة البيانات</h3>
-          <p style="font-size:13px;color:var(--text3);margin-bottom:20px;">ابحث في المنصات الخارجية</p>
-          <div class="ext-grid">
+          <h3 style="font-size:16px;font-weight:600;margin-bottom:8px;">${isPhone?'الرقم غير موجود في قاعدة البيانات':'لا توجد نتائج مطابقة'}</h3>
+          <p style="font-size:13px;color:var(--text3);margin-bottom:20px;">${isPhone?'ابحث في المنصات الخارجية':'جرّب كلمة أخرى أو ابحث في الإنترنت'}</p>
+          ${isPhone?`<div class="ext-grid">
             <a href="https://www.google.com/search?q=${enc}" target="_blank" class="ext-btn" style="background:#1a2a3a;color:#7ab4e8;border:0.5px solid #2a4a6a;">🌐 Google</a>
             <a href="https://www.truecaller.com/search/dz/${enc.replace(/%2B/g,'')}" target="_blank" class="ext-btn" style="background:#1a3a2a;color:#7ae8a4;border:0.5px solid #2a6a4a;">📞 Truecaller</a>
             <a href="https://wa.me/${enc.replace(/%2B/g,'')}" target="_blank" class="ext-btn" style="background:#1a3a1a;color:#7ae87a;border:0.5px solid #2a6a2a;">💬 WhatsApp</a>
             <a href="https://www.google.com/maps/search/${enc}" target="_blank" class="ext-btn" style="background:#3a2a1a;color:#e8c47a;border:0.5px solid #6a4a2a;">📍 Maps</a>
-          </div>
+          </div>`:''}
         </div>`;
     }
   }catch(e){el.innerHTML='<div class="alert alert-danger">خطأ في الاتصال بقاعدة البيانات</div>';}
+}
+
+function renderSingleResult(f){
+  const photoHtml=f.photo
+    ?`<div class="avatar" style="width:60px;height:60px;cursor:zoom-in;border:2px solid var(--gold-border);" onclick="openLightbox('${f.photo}')"><img src="${f.photo}" style="width:100%;height:100%;object-fit:cover;"/></div>`
+    :`<div class="avatar" style="width:60px;height:60px;font-size:22px;">${f.name.charAt(0)}</div>`;
+  return `<div class="card card-gold result-card">
+    <div class="result-header">
+      ${photoHtml}
+      <div style="flex:1"><div class="result-name">${f.name}</div>${f.specialty?`<div class="result-spec">${f.specialty}</div>`:''}</div>
+      <span class="badge badge-success">موجود ✓</span>
+    </div>
+    <table class="result-table">
+      <tr><td>الهاتف</td><td><div class="phone-cell"><span class="phone-num">${f.phone}</span><button class="copy-btn" onclick="copyPhone('${f.phone}')">نسخ</button></div></td></tr>
+      ${f.country?`<tr><td>الدولة</td><td style="color:var(--text)">${f.country}</td></tr>`:''}
+      ${f.notes?`<tr><td>ملاحظات</td><td style="color:var(--text2)">${f.notes}</td></tr>`:''}
+      ${f.added_by?`<tr><td>أضافه</td><td style="color:var(--text3);font-size:12px;">${f.added_by} · ${f.added_at||''}</td></tr>`:''}
+    </table>
+    ${f.photo?`<div style="margin-top:12px;padding-top:12px;border-top:0.5px solid var(--border);font-size:12px;color:var(--text3);">💡 انقر على الصورة لعرضها بالحجم الكامل</div>`:''}
+  </div>`;
+}
+
+function renderMultiResults(list, query){
+  const cards=list.map(f=>`
+    <div class="contact-row" style="cursor:pointer;margin-bottom:8px;" onclick="expandResult('${f.id}')">
+      <div class="avatar avatar-sm">${f.photo?`<img src="${f.photo}"/>`:(f.name?f.name.charAt(0):'?')}</div>
+      <div class="contact-info">
+        <div class="contact-name">${f.name}</div>
+        <div class="contact-sub">${f.phone}${f.specialty?' · '+f.specialty:''}${f.country?' · '+f.country:''}</div>
+      </div>
+      <span style="font-size:12px;color:var(--text3);">عرض ←</span>
+    </div>`).join('');
+  window._multiResults=list;
+  return `<div class="result-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div><span class="badge badge-gold">${list.length} نتيجة</span></div>
+      <div style="font-size:13px;color:var(--text3);">نتائج البحث عن: <strong style="color:var(--text)">${query}</strong></div>
+    </div>
+    <div id="multi-list">${cards}</div>
+    <div id="expanded-result"></div>
+  </div>`;
+}
+
+function expandResult(id){
+  const f=window._multiResults.find(r=>r.id===id);
+  if(!f)return;
+  const el=document.getElementById('expanded-result');
+  if(el){el.innerHTML='<div style="margin-top:16px;padding-top:16px;border-top:0.5px solid var(--border);">'+renderSingleResult(f)+'</div>';
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});}
 }
 
 async function loadCount(){
@@ -672,14 +742,24 @@ async function saveContact(){
   const name=document.getElementById('cf-name').value.trim();
   const phone=document.getElementById('cf-phone').value.trim();
   if(!name||!phone){flash('الاسم والرقم مطلوبان',false);return;}
-  const photo=await cropToBase64()||_photoB64||null;
+  
+  // Get cropped image as base64
+  let photoUrl=_photoB64||null; // keep existing URL if no new image
+  const newCrop=await cropToBase64();
+  if(newCrop){
+    try{
+      flash('جاري رفع الصورة...');
+      photoUrl=await uploadPhoto(newCrop,'contacts');
+    }catch(e){flash('خطأ في رفع الصورة: '+e.message,false);return;}
+  }
+  
   const payload={name,phone,
     specialty:document.getElementById('cf-spec').value.trim(),
     country:document.getElementById('cf-country').value,
     notes:document.getElementById('cf-notes').value.trim(),
     added_by:me.full_name,
     added_at:new Date().toLocaleDateString('ar-DZ'),
-    photo
+    photo:photoUrl
   };
   let err;
   if(editId){({error:err}=await sb.from('contacts').update(payload).eq('id',editId));}
@@ -873,7 +953,11 @@ async function saveUser(){
   const bio=document.getElementById('uf-bio').value.trim();
   if(!name||!username||!pass){flash('الاسم واسم الدخول وكلمة المرور مطلوبة',false);return;}
   const h=await sha256(pass);
-  const{error}=await sb.from('admins').insert([{username,password_hash:h,full_name:name,role,bio,photo:_userPhotoB64||null}]);
+  let userPhotoUrl=null;
+  if(_userPhotoB64){
+    try{userPhotoUrl=await uploadPhoto(_userPhotoB64,'users');}catch(e){flash('خطأ في رفع الصورة',false);return;}
+  }
+  const{error}=await sb.from('admins').insert([{username,password_hash:h,full_name:name,role,bio,photo:userPhotoUrl}]);
   if(error){flash(error.code==='23505'?'اسم الدخول مستخدم مسبقاً':'خطأ: '+error.message,false);return;}
   flash('تمت إضافة المستخدم ✓');
   _userPhotoB64=null;
@@ -961,7 +1045,10 @@ async function saveSettings(){
   if(pass&&pass!==pass2){flash('كلمتا المرور غير متطابقتين',false);return;}
   const payload={full_name:name,username};
   if(pass)payload.password_hash=await sha256(pass);
-  if(_settingsPhotoB64)payload.photo=_settingsPhotoB64;
+  if(_settingsPhotoB64){
+    try{payload.photo=await uploadPhoto(_settingsPhotoB64,'users');}
+    catch(e){flash('خطأ في رفع الصورة',false);return;}
+  }
   const{error}=await sb.from('admins').update(payload).eq('id',me.id);
   if(error){flash('خطأ: '+error.message,false);return;}
   me={...me,...payload};
