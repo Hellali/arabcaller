@@ -215,7 +215,7 @@ textarea.form-input{resize:vertical;min-height:80px;}
     <h2>ابحث عن <span>صاحب الرقم</span></h2>
     <p>ابحث برقم الهاتف أو الاسم أو التخصص أو أي كلمة من معلومات الشخص</p>
     <div class="search-box">
-      <input id="sp" type="tel" placeholder="رقم هاتف أو اسم أو تخصص..." onkeydown="if(event.key==='Enter')doSearch()"/>
+      <input id="sp" type="text" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="رقم هاتف أو اسم أو تخصص..." onkeydown="if(event.key==='Enter')doSearch()"/>
       <button class="search-btn" onclick="doSearch()">بحث</button>
     </div>
   </div>
