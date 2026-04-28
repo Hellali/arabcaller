@@ -310,9 +310,10 @@ async function doLogin(){
   if(!u||!p){err.style.display='block';err.textContent='أدخل بيانات الدخول';return;}
   const h=await sha256(p);
   try{
-    const{data,error}=await sb.from('admins').select('*').eq('username',u).eq('password_hash',h).single();
-    if(error||!data){err.style.display='block';err.textContent='بيانات الدخول غير صحيحة';return;}
-    me=data;
+    const{data,error}=await sb.rpc('verify_admin',{p_username:u,p_hash:h});
+    if(error||!data||data.length===0){err.style.display='block';err.textContent='بيانات الدخول غير صحيحة';return;}
+    const loginData=data[0];
+    me=loginData;
     err.style.display='none';
     document.getElementById('lu').value='';document.getElementById('lp').value='';
     // Set nav user info
@@ -864,7 +865,7 @@ async function confirmImport(){
 // ── USERS ──
 async function renderUsers(){
   const el=document.getElementById('ac');
-  const{data}=await sb.from('admins').select('*').order('created_at');
+  const{data}=await sb.from('admins_safe').select('*').order('created_at');
   const users=data||[];
   el.innerHTML=`
     <div class="tab-title">المستخدمون</div>
