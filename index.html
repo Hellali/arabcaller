@@ -6,7 +6,89 @@
 <title>دليل المتصلين</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☎</text></svg>"/>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+// ══ EXPORT CSV ══
+async function renderExport(){
+  const el=document.getElementById('ac');
+  el.innerHTML=`
+    <div class="tab-title">تصدير قاعدة البيانات</div>
+    <div class="tab-subtitle">تحميل كل جهات الاتصال كملف CSV</div>
+    <div class="card" style="text-align:center;padding:3rem;">
+      <div style="font-size:48px;margin-bottom:16px;">📤</div>
+      <p style="font-size:15px;color:var(--text2);margin-bottom:8px;">تحميل كل قاعدة البيانات دفعة واحدة</p>
+      <p style="font-size:13px;color:var(--text3);margin-bottom:24px;">يمكنك استخدام هذا الملف كنسخة احتياطية أو استيراده لاحقاً</p>
+      <button class="btn btn-gold" style="padding:12px 32px;font-size:15px;" onclick="doExport()">⬇ تحميل CSV الآن</button>
+      <div id="export-status" style="margin-top:16px;font-size:13px;color:var(--text3);"></div>
+    </div>`;
+}
+
+async function doExport(){
+  const statusEl=document.getElementById('export-status');
+  if(statusEl)statusEl.textContent='جاري التحضير...';
+  const{data,error}=await sb.from('contacts').select('name,phone,specialty,country,notes,added_by,added_at').order('created_at',{ascending:false});
+  if(error||!data){if(statusEl)statusEl.textContent='حدث خطأ';return;}
+  
+  const headers=['name','phone','specialty','country','notes','added_by','added_at'];
+  const rows=data.map(r=>headers.map(h=>{
+    const v=r[h]||'';
+    return v.includes(',')||v.includes('"')||v.includes('\n')?`"${v.replace(/"/g,'""')}"`  :v;
+  }).join(','));
+  const csv='﻿'+headers.join(',')+'
+'+rows.join('
+');
+  
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='دليل_المتصلين_'+new Date().toLocaleDateString('ar-DZ').replace(/\//g,'-')+'.csv';
+  a.click();
+  
+  await sb.rpc('log_activity',{p_admin_name:me.full_name,p_action:'تصدير CSV',p_details:'تم تصدير '+data.length+' جهة'});
+  if(statusEl)statusEl.textContent=`✅ تم تصدير ${data.length} جهة بنجاح`;
+}
+
+// ══ ACTIVITY LOG ══
+async function renderActivityLog(){
+  const el=document.getElementById('ac');
+  el.innerHTML='<div class="loading">جاري التحميل...</div>';
+  const{data}=await sb.from('activity_log').select('*').order('created_at',{ascending:false}).limit(100);
+  const logs=data||[];
+  
+  const actionColors={
+    'إضافة جهة':'var(--success-text)','تعديل جهة':'var(--info-text)',
+    'حذف جهة':'var(--danger-text)','استيراد CSV':'var(--gold)',
+    'تصدير CSV':'var(--gold)','إضافة مستخدم':'var(--success-text)',
+    'حذف مستخدم':'var(--danger-text)'
+  };
+  
+  el.innerHTML=`
+    <div class="tab-title">سجل النشاط</div>
+    <div class="tab-subtitle">آخر 100 عملية في الموقع</div>
+    ${logs.length===0?'<div class="empty-state"><div class="empty-icon">📜</div><p>لا يوجد نشاط بعد</p></div>':
+    logs.map(l=>{
+      const color=actionColors[l.action]||'var(--text2)';
+      const date=new Date(l.created_at).toLocaleString('ar-DZ');
+      return `<div class="contact-row" style="margin-bottom:8px;">
+        <div style="width:38px;height:38px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
+          ${{
+            'إضافة جهة':'➕','تعديل جهة':'✏️','حذف جهة':'🗑️',
+            'استيراد CSV':'📥','تصدير CSV':'📤',
+            'إضافة مستخدم':'👤','حذف مستخدم':'❌'
+          }[l.action]||'📝'}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="font-weight:600;font-size:13px;color:${color};">${l.action}</span>
+            <span style="font-size:11px;color:var(--text3);">بواسطة ${l.admin_name}</span>
+          </div>
+          ${l.details?`<div style="font-size:12px;color:var(--text3);margin-top:2px;">${l.details}</div>`:''}
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">${date}</div>
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -217,6 +299,13 @@ textarea.form-input{resize:vertical;min-height:80px;}
     <div class="search-box">
       <input id="sp" type="text" inputmode="text" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="رقم هاتف أو اسم أو تخصص..." onkeydown="if(event.key==='Enter')doSearch()"/>
       <button class="search-btn" onclick="doSearch()">بحث</button>
+    </div>
+    <div style="max-width:600px;margin:12px auto 0;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;">
+      <select id="country-filter" style="padding:8px 14px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--radius);color:var(--text2);font-family:'Tajawal',sans-serif;font-size:13px;outline:none;cursor:pointer;" onchange="doSearch()">
+        <option value="">🌍 كل الدول</option>
+        ${COUNTRIES.map(c=>`<option value="${c}">${c}</option>`).join('')}
+      </select>
+      <button class="btn btn-ghost btn-sm" onclick="clearSearch()" style="font-size:12px;">مسح البحث</button>
     </div>
   </div>
   <div class="search-result-wrap">
@@ -434,33 +523,48 @@ function doLogout(){
 // ══ SMART SEARCH ══
 function isPhoneQuery(q){return /^[\d\+\s\-\(\)\.]+$/.test(q)&&q.replace(/\D/g,'').length>=4;}
 
+function clearSearch(){
+  document.getElementById('sp').value='';
+  document.getElementById('country-filter').value='';
+  document.getElementById('sr').innerHTML='';
+  document.getElementById('dbc').textContent='';
+  loadCount();
+}
+
 async function doSearch(){
   const raw=document.getElementById('sp').value.trim();
-  if(!raw)return;
+  const countryFilter=document.getElementById('country-filter')?.value||'';
+  if(!raw&&!countryFilter)return;
   const el=document.getElementById('sr');
   el.innerHTML='<div class="loading">جاري البحث...</div>';
   try{
     let data=[];
-    if(isPhoneQuery(raw)){
-      // Phone search: fetch all and match normalized
+    if(raw&&isPhoneQuery(raw)){
+      // Phone search
       const n=norm(raw);
-      const{data:all}=await sb.from('contacts').select('*');
+      let q=sb.from('contacts').select('*');
+      if(countryFilter)q=q.eq('country',countryFilter);
+      const{data:all}=await q;
       const f=(all||[]).find(c=>{const cn=norm(c.phone);return cn===n||cn.endsWith(n)||n.endsWith(cn);});
       if(f)data=[f];
-    } else {
-      // Text search: server-side ilike across name, specialty, notes
+    } else if(raw){
+      // Text search with optional country filter
       const q=raw.trim();
-      const[r1,r2,r3]=await Promise.all([
-        sb.from('contacts').select('*').ilike('name','%'+q+'%'),
-        sb.from('contacts').select('*').ilike('specialty','%'+q+'%'),
-        sb.from('contacts').select('*').ilike('notes','%'+q+'%')
-      ]);
+      let q1=sb.from('contacts').select('*').ilike('name','%'+q+'%');
+      let q2=sb.from('contacts').select('*').ilike('specialty','%'+q+'%');
+      let q3=sb.from('contacts').select('*').ilike('notes','%'+q+'%');
+      if(countryFilter){q1=q1.eq('country',countryFilter);q2=q2.eq('country',countryFilter);q3=q3.eq('country',countryFilter);}
+      const[r1,r2,r3]=await Promise.all([q1,q2,q3]);
       const seen=new Set();
       for(const r of[r1,r2,r3]){
         for(const c of(r.data||[])){
           if(!seen.has(c.id)){seen.add(c.id);data.push(c);}
         }
       }
+    } else if(countryFilter){
+      // Country only filter
+      const{data:all}=await sb.from('contacts').select('*').eq('country',countryFilter);
+      data=all||[];
     }
     const f=data.length===1?data[0]:null;
     const multi=data.length>1?data:null;
@@ -557,10 +661,13 @@ function buildSidebar(){
     {k:'contacts',icon:'📋',l:'جهات الاتصال'},
     {k:'addContact',icon:'➕',l:'إضافة جهة'},
     {k:'import',icon:'📥',l:'استيراد CSV'},
+    {k:'export',icon:'📤',l:'تصدير CSV'},
     {k:'sep'},
     {k:'users',icon:'👥',l:'المستخدمون'},
     {k:'addUser',icon:'👤',l:'إضافة مستخدم'},
-    ...(isSA?[{k:'sep2'},{k:'settings',icon:'⚙️',l:'إعداداتي'}]:[])
+    {k:'sep2'},
+    {k:'actlog',icon:'📜',l:'سجل النشاط'},
+    ...(isSA?[{k:'sep3'},{k:'settings',icon:'⚙️',l:'إعداداتي'}]:[])
   ];
   document.getElementById('sidebar').innerHTML=items.map(i=>{
     if(i.k==='sep'||i.k==='sep2')return'<div class="sidebar-sep"></div>';
@@ -591,8 +698,10 @@ async function renderTab(){
   if(atab==='contacts')await renderContacts();
   else if(atab==='addContact')renderContactForm();
   else if(atab==='import')renderImport();
+  else if(atab==='export')await renderExport();
   else if(atab==='users')await renderUsers();
   else if(atab==='addUser')renderUserForm();
+  else if(atab==='actlog')await renderActivityLog();
   else if(atab==='settings')renderSettings();
 }
 
@@ -874,6 +983,7 @@ async function saveContact(){
   }
   if(err){flash('حدث خطأ: '+err.message,false);return;}
   flash(editId?'تم التعديل بنجاح ✓':'تمت الإضافة بنجاح ✓');
+  await sb.rpc('log_activity',{p_admin_name:me.full_name,p_action:editId?'تعديل جهة':'إضافة جهة',p_details:payload.name+' · '+payload.phone});
   editId=null;_allC=[];_photoB64=null;
   setTimeout(()=>switchTab('contacts'),1000);
 }
@@ -882,7 +992,9 @@ async function startEditContact(id){editId=id;atab='addContact';buildSidebar();r
 async function delContact(id){
   if(!confirm('حذف هذه الجهة؟'))return;
   await sb.rpc('delete_contact',{p_id:id});
-  _allC=[];flash('تم الحذف');await renderContacts();
+  _allC=[];
+  await sb.rpc('log_activity',{p_admin_name:me.full_name,p_action:'حذف جهة',p_details:'ID: '+id});
+  flash('تم الحذف');await renderContacts();
 }
 
 // ── IMPORT CSV ──
@@ -966,6 +1078,7 @@ async function confirmImport(){
     btn.textContent=`تم ${total} من ${rows.length}...`;
   }
   window._importRows=[];_allC=[];
+  await sb.rpc('log_activity',{p_admin_name:me.full_name,p_action:'استيراد CSV',p_details:'تم استيراد '+total+' جهة'});
   flash(`✅ تم استيراد ${total} جهة بنجاح!`);
   setTimeout(()=>switchTab('contacts'),1500);
 }
@@ -1069,6 +1182,7 @@ async function saveUser(){
   const{error}=await sb.rpc('add_admin',{p_username:username,p_password_hash:h,p_full_name:name,p_role:role,p_bio:bio,p_photo:userPhotoUrl});
   if(error){flash(error.code==='23505'?'اسم الدخول مستخدم مسبقاً':'خطأ: '+error.message,false);return;}
   flash('تمت إضافة المستخدم ✓');
+  await sb.rpc('log_activity',{p_admin_name:me.full_name,p_action:'إضافة مستخدم',p_details:name+' ('+role+')'});
   _userPhotoB64=null;
   setTimeout(()=>switchTab('users'),1000);
 }
@@ -1076,6 +1190,7 @@ async function saveUser(){
 async function delUser(id){
   if(!confirm('حذف هذا المستخدم؟'))return;
   await sb.rpc('delete_admin',{p_id:id});
+  await sb.rpc('log_activity',{p_admin_name:me.full_name,p_action:'حذف مستخدم',p_details:'ID: '+id});
   flash('تم الحذف');await renderUsers();
 }
 
@@ -1170,6 +1285,88 @@ async function saveSettings(){
   flash('تم حفظ التغييرات ✓');
   _settingsPhotoB64=null;
 }
+
+// ══ EXPORT CSV ══
+async function renderExport(){
+  const el=document.getElementById('ac');
+  el.innerHTML=`
+    <div class="tab-title">تصدير قاعدة البيانات</div>
+    <div class="tab-subtitle">تحميل كل جهات الاتصال كملف CSV</div>
+    <div class="card" style="text-align:center;padding:3rem;">
+      <div style="font-size:48px;margin-bottom:16px;">📤</div>
+      <p style="font-size:15px;color:var(--text2);margin-bottom:8px;">تحميل كل قاعدة البيانات دفعة واحدة</p>
+      <p style="font-size:13px;color:var(--text3);margin-bottom:24px;">يمكنك استخدام هذا الملف كنسخة احتياطية أو استيراده لاحقاً</p>
+      <button class="btn btn-gold" style="padding:12px 32px;font-size:15px;" onclick="doExport()">⬇ تحميل CSV الآن</button>
+      <div id="export-status" style="margin-top:16px;font-size:13px;color:var(--text3);"></div>
+    </div>`;
+}
+
+async function doExport(){
+  const statusEl=document.getElementById('export-status');
+  if(statusEl)statusEl.textContent='جاري التحضير...';
+  const{data,error}=await sb.from('contacts').select('name,phone,specialty,country,notes,added_by,added_at').order('created_at',{ascending:false});
+  if(error||!data){if(statusEl)statusEl.textContent='حدث خطأ';return;}
+  
+  const headers=['name','phone','specialty','country','notes','added_by','added_at'];
+  const rows=data.map(r=>headers.map(h=>{
+    const v=r[h]||'';
+    return v.includes(',')||v.includes('"')||v.includes('\n')?`"${v.replace(/"/g,'""')}"`  :v;
+  }).join(','));
+  const csv='﻿'+headers.join(',')+'
+'+rows.join('
+');
+  
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='دليل_المتصلين_'+new Date().toLocaleDateString('ar-DZ').replace(/\//g,'-')+'.csv';
+  a.click();
+  
+  await sb.rpc('log_activity',{p_admin_name:me.full_name,p_action:'تصدير CSV',p_details:'تم تصدير '+data.length+' جهة'});
+  if(statusEl)statusEl.textContent=`✅ تم تصدير ${data.length} جهة بنجاح`;
+}
+
+// ══ ACTIVITY LOG ══
+async function renderActivityLog(){
+  const el=document.getElementById('ac');
+  el.innerHTML='<div class="loading">جاري التحميل...</div>';
+  const{data}=await sb.from('activity_log').select('*').order('created_at',{ascending:false}).limit(100);
+  const logs=data||[];
+  
+  const actionColors={
+    'إضافة جهة':'var(--success-text)','تعديل جهة':'var(--info-text)',
+    'حذف جهة':'var(--danger-text)','استيراد CSV':'var(--gold)',
+    'تصدير CSV':'var(--gold)','إضافة مستخدم':'var(--success-text)',
+    'حذف مستخدم':'var(--danger-text)'
+  };
+  
+  el.innerHTML=`
+    <div class="tab-title">سجل النشاط</div>
+    <div class="tab-subtitle">آخر 100 عملية في الموقع</div>
+    ${logs.length===0?'<div class="empty-state"><div class="empty-icon">📜</div><p>لا يوجد نشاط بعد</p></div>':
+    logs.map(l=>{
+      const color=actionColors[l.action]||'var(--text2)';
+      const date=new Date(l.created_at).toLocaleString('ar-DZ');
+      return `<div class="contact-row" style="margin-bottom:8px;">
+        <div style="width:38px;height:38px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
+          ${{
+            'إضافة جهة':'➕','تعديل جهة':'✏️','حذف جهة':'🗑️',
+            'استيراد CSV':'📥','تصدير CSV':'📤',
+            'إضافة مستخدم':'👤','حذف مستخدم':'❌'
+          }[l.action]||'📝'}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="font-weight:600;font-size:13px;color:${color};">${l.action}</span>
+            <span style="font-size:11px;color:var(--text3);">بواسطة ${l.admin_name}</span>
+          </div>
+          ${l.details?`<div style="font-size:12px;color:var(--text3);margin-top:2px;">${l.details}</div>`:''}
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">${date}</div>
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
 </script>
 </body>
 </html>
