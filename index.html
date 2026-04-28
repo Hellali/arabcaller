@@ -763,8 +763,21 @@ async function saveContact(){
     photo:photoUrl
   };
   let err;
-  if(editId){({error:err}=await sb.from('contacts').update(payload).eq('id',editId));}
-  else{({error:err}=await sb.from('contacts').insert([payload]));}
+  if(editId){
+    const{error:e}=await sb.rpc('update_contact',{
+      p_id:editId,p_name:payload.name,p_phone:payload.phone,
+      p_specialty:payload.specialty,p_country:payload.country,
+      p_notes:payload.notes,p_added_by:payload.added_by,
+      p_added_at:payload.added_at,p_photo:payload.photo
+    });err=e;
+  }else{
+    const{error:e}=await sb.rpc('add_contact',{
+      p_name:payload.name,p_phone:payload.phone,
+      p_specialty:payload.specialty,p_country:payload.country,
+      p_notes:payload.notes,p_added_by:payload.added_by,
+      p_added_at:payload.added_at,p_photo:payload.photo
+    });err=e;
+  }
   if(err){flash('حدث خطأ: '+err.message,false);return;}
   flash(editId?'تم التعديل بنجاح ✓':'تمت الإضافة بنجاح ✓');
   editId=null;_allC=[];_photoB64=null;
@@ -774,7 +787,7 @@ async function saveContact(){
 async function startEditContact(id){editId=id;atab='addContact';buildSidebar();renderContactForm();}
 async function delContact(id){
   if(!confirm('حذف هذه الجهة؟'))return;
-  await sb.from('contacts').delete().eq('id',id);
+  await sb.rpc('delete_contact',{p_id:id});
   _allC=[];flash('تم الحذف');await renderContacts();
 }
 
@@ -852,7 +865,8 @@ async function confirmImport(){
   const btn=event.target;btn.textContent='جاري الاستيراد...';btn.disabled=true;
   let total=0;
   for(let i=0;i<rows.length;i+=50){
-    const{error}=await sb.from('contacts').insert(rows.slice(i,i+50));
+    const batch=rows.slice(i,i+50);
+    const{error}=await sb.rpc('bulk_insert_contacts',{p_contacts:JSON.stringify(batch)});
     if(error){flash('خطأ: '+error.message,false);btn.disabled=false;return;}
     total+=Math.min(50,rows.length-i);
     btn.textContent=`تم ${total} من ${rows.length}...`;
@@ -958,7 +972,7 @@ async function saveUser(){
   if(_userPhotoB64){
     try{userPhotoUrl=await uploadPhoto(_userPhotoB64,'users');}catch(e){flash('خطأ في رفع الصورة',false);return;}
   }
-  const{error}=await sb.from('admins').insert([{username,password_hash:h,full_name:name,role,bio,photo:userPhotoUrl}]);
+  const{error}=await sb.rpc('add_admin',{p_username:username,p_password_hash:h,p_full_name:name,p_role:role,p_bio:bio,p_photo:userPhotoUrl});
   if(error){flash(error.code==='23505'?'اسم الدخول مستخدم مسبقاً':'خطأ: '+error.message,false);return;}
   flash('تمت إضافة المستخدم ✓');
   _userPhotoB64=null;
@@ -967,7 +981,7 @@ async function saveUser(){
 
 async function delUser(id){
   if(!confirm('حذف هذا المستخدم؟'))return;
-  await sb.from('admins').delete().eq('id',id);
+  await sb.rpc('delete_admin',{p_id:id});
   flash('تم الحذف');await renderUsers();
 }
 
@@ -1050,7 +1064,11 @@ async function saveSettings(){
     try{payload.photo=await uploadPhoto(_settingsPhotoB64,'users');}
     catch(e){flash('خطأ في رفع الصورة',false);return;}
   }
-  const{error}=await sb.from('admins').update(payload).eq('id',me.id);
+  const{error}=await sb.rpc('update_admin_settings',{
+    p_id:me.id,p_full_name:payload.full_name,p_username:payload.username,
+    p_password_hash:payload.password_hash||null,
+    p_photo:payload.photo||null
+  });
   if(error){flash('خطأ: '+error.message,false);return;}
   me={...me,...payload};
   if(_settingsPhotoB64)me.photo=_settingsPhotoB64;
