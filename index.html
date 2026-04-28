@@ -272,6 +272,13 @@ async function deletePhoto(url){
   await sb.storage.from('photos').remove([path]);
 }
 
+// ══ SECURITY CONFIG ══
+const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 دقيقة
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION = 15 * 60 * 1000; // 15 دقيقة
+let sessionTimer = null;
+let lastActivity = Date.now();
+
 const COUNTRIES=['الجزائر','السعودية','مصر','الإمارات','الكويت','قطر','البحرين','عمان','العراق','الأردن','لبنان','سوريا','فلسطين','ليبيا','تونس','المغرب','السودان','اليمن','الصومال','موريتانيا','أخرى'];
 let me=null, editId=null, atab='contacts', _allC=[], _photoB64=null, _cropData={scale:1,x:0,y:0};
 
@@ -303,21 +310,104 @@ function copyPhone(phone){
 }
 
 // ══ AUTH ══
+function getLockoutKey(u){return 'lockout_'+u;}
+function getAttemptsKey(u){return 'attempts_'+u;}
+
+function checkLockout(u){
+  const key=getLockoutKey(u);
+  const lockTime=localStorage.getItem(key);
+  if(!lockTime)return false;
+  const remaining=LOCKOUT_DURATION-(Date.now()-parseInt(lockTime));
+  if(remaining>0){
+    const mins=Math.ceil(remaining/60000);
+    return `الحساب مقفل لمدة ${mins} دقيقة بسبب محاولات دخول متعددة`;
+  }
+  localStorage.removeItem(key);
+  localStorage.removeItem(getAttemptsKey(u));
+  return false;
+}
+
+function recordFailedAttempt(u){
+  const key=getAttemptsKey(u);
+  const attempts=(parseInt(localStorage.getItem(key))||0)+1;
+  localStorage.setItem(key,attempts);
+  if(attempts>=MAX_LOGIN_ATTEMPTS){
+    localStorage.setItem(getLockoutKey(u),Date.now());
+    localStorage.removeItem(key);
+    return `تم قفل الحساب لمدة 15 دقيقة بعد ${MAX_LOGIN_ATTEMPTS} محاولات فاشلة`;
+  }
+  return `بيانات الدخول غير صحيحة — المحاولة ${attempts} من ${MAX_LOGIN_ATTEMPTS}`;
+}
+
+function clearFailedAttempts(u){
+  localStorage.removeItem(getAttemptsKey(u));
+  localStorage.removeItem(getLockoutKey(u));
+}
+
+// ══ SESSION MANAGEMENT ══
+function startSession(){
+  lastActivity=Date.now();
+  resetSessionTimer();
+  document.addEventListener('click',onActivity);
+  document.addEventListener('keydown',onActivity);
+  document.addEventListener('touchstart',onActivity);
+}
+
+function onActivity(){
+  lastActivity=Date.now();
+  resetSessionTimer();
+}
+
+function resetSessionTimer(){
+  if(sessionTimer)clearTimeout(sessionTimer);
+  sessionTimer=setTimeout(()=>{
+    if(me){
+      showSessionExpiredMsg();
+      doLogout();
+    }
+  },SESSION_TIMEOUT);
+}
+
+function showSessionExpiredMsg(){
+  const el=document.getElementById('lerr');
+  if(el){
+    el.style.display='block';
+    el.textContent='انتهت جلستك تلقائياً بعد 30 دقيقة من عدم النشاط';
+  }
+}
+
+function stopSession(){
+  if(sessionTimer)clearTimeout(sessionTimer);
+  document.removeEventListener('click',onActivity);
+  document.removeEventListener('keydown',onActivity);
+  document.removeEventListener('touchstart',onActivity);
+}
+
 async function doLogin(){
   const u=document.getElementById('lu').value.trim();
   const p=document.getElementById('lp').value.trim();
   const err=document.getElementById('lerr');
   if(!u||!p){err.style.display='block';err.textContent='أدخل بيانات الدخول';return;}
+
+  // Check lockout
+  const lockMsg=checkLockout(u);
+  if(lockMsg){err.style.display='block';err.textContent=lockMsg;return;}
+
   const h=await sha256(p);
   try{
     const{data,error}=await sb.rpc('verify_admin',{p_username:u,p_hash:h});
-    if(error||!data||data.length===0){err.style.display='block';err.textContent='بيانات الدخول غير صحيحة';return;}
+    if(error||!data||data.length===0){
+      const msg=recordFailedAttempt(u);
+      err.style.display='block';err.textContent=msg;return;
+    }
+    clearFailedAttempts(u);
     const loginData=data[0];
     me=loginData;
     err.style.display='none';
     document.getElementById('lu').value='';document.getElementById('lp').value='';
     // Set nav user info
     setNavUser();
+    startSession();
     showPage('page-search');
     loadCount();
   }catch(e){err.style.display='block';err.textContent='خطأ في الاتصال';}
@@ -335,7 +425,11 @@ function setNavUser(){
   if(adminBtn)adminBtn.style.display=(me.role==='admin'||me.role==='superadmin')?'inline-flex':'none';
 }
 
-function doLogout(){me=null;editId=null;atab='contacts';_allC=[];showPage('page-login');}
+function doLogout(){
+  stopSession();
+  me=null;editId=null;atab='contacts';_allC=[];
+  showPage('page-login');
+}
 
 // ══ SMART SEARCH ══
 function isPhoneQuery(q){return /^[\d\+\s\-\(\)\.]+$/.test(q)&&q.replace(/\D/g,'').length>=4;}
