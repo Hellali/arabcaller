@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>دليل المتصلين</title>
+<title>دليل الاتصال</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☎</text></svg>"/>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
@@ -92,9 +92,14 @@ async function renderActivityLog(){
 :root{
   --gold:#c9a84c;--gold-light:#e8cc7a;--gold-dim:#c9a84c18;--gold-border:#c9a84c45;
   --gold-glow:0 0 40px #c9a84c25,0 0 80px #c9a84c10;
-  --bg:#09090c;--bg2:#111115;--bg3:#17171d;--bg4:#1e1e26;
-  --text:#f2efe8;--text2:#9a9590;--text3:#524f48;
-  --border:#232330;--border2:#303040;
+  /* Purple-Blue-Maroon palette */
+  --purple:#7c3aed;--purple2:#6b21a8;--purple3:#4c1d95;
+  --blue:#2563eb;--blue2:#1d4ed8;--blue3:#1e3a8a;
+  --maroon:#be185d;--maroon2:#9d174d;--maroon3:#831843;
+  /* Backgrounds */
+  --bg:#0a0812;--bg2:#110d1c;--bg3:#1a1228;--bg4:#221832;
+  --text:#f0ede6;--text2:#a89dc0;--text3:#5a5070;
+  --border:#2a2040;--border2:#3d3060;
   --success:#1f6b3f;--success-bg:#0a2016;--success-text:#4daa78;
   --danger:#7a2020;--danger-bg:#200a0a;--danger-text:#e87070;
   --info-bg:#0a1525;--info-text:#70a0e0;--info-border:#152040;
@@ -130,19 +135,19 @@ body::after{
   box-shadow:0 1px 0 rgba(201,168,76,0.06),0 4px 20px rgba(0,0,0,0.3);
 }
 .nav-brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;}
-.nav-dot{width:32px;height:32px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;font-size:16px;}
-.nav-brand span{color:var(--gold);}
+.nav-dot{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#6b21a8,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 16px #6b21a840;}
+.nav-brand span{background:linear-gradient(90deg,#a855f7,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .nav-actions{display:flex;align-items:center;gap:8px;}
 .nav-user{font-size:13px;color:var(--text3);}
 
 /* BUTTONS */
 .btn{padding:8px 18px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;font-family:'Tajawal',sans-serif;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
 .btn-gold{
-  background:linear-gradient(135deg,#d4a832,#e8cc6a,#c9a020);
-  color:#0a0800;font-weight:700;
-  box-shadow:0 2px 12px #c9a84c30;
+  background:linear-gradient(135deg,#7c3aed,#2563eb);
+  color:#fff;font-weight:700;
+  box-shadow:0 2px 12px #7c3aed30;
 }
-.btn-gold:hover{filter:brightness(1.08);transform:translateY(-1px);box-shadow:0 4px 20px #c9a84c40;}
+.btn-gold:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 4px 20px #7c3aed40;}
 .btn-gold:active{transform:translateY(0);}
 .btn-outline{background:transparent;border:0.5px solid var(--border2);color:var(--text2);}
 .btn-outline:hover{border-color:var(--gold-border);color:var(--gold);}
@@ -165,9 +170,14 @@ textarea.form-input{resize:vertical;min-height:80px;}
 /* CARDS */
 .card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;}
 .card-gold{
-  border-color:var(--gold-border);
-  box-shadow:0 0 40px #c9a84c15,0 0 1px #c9a84c30,inset 0 1px 0 #c9a84c10;
-  background:linear-gradient(135deg,#141418 0%,#161619 100%);
+  border-color:#3d3060;
+  box-shadow:0 0 40px #7c3aed15,0 0 1px #7c3aed20;
+  background:linear-gradient(135deg,#110d1c 0%,#130f1e 100%);
+  position:relative;overflow:hidden;
+}
+.card-gold::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,#7c3aed,var(--gold),#2563eb,#be185d);
 }
 
 /* BADGE */
@@ -177,7 +187,7 @@ textarea.form-input{resize:vertical;min-height:80px;}
   color:var(--success-text);border:0.5px solid var(--success);
   box-shadow:0 0 12px #1f6b3f20;
 }
-.badge-gold{background:var(--gold-dim);color:var(--gold);border:0.5px solid var(--gold-border);}
+.badge-gold{background:#7c3aed18;color:#a855f7;border:0.5px solid #7c3aed40;}
 .badge-muted{background:var(--bg4);color:var(--text3);border:0.5px solid var(--border);}
 
 /* ALERT */
@@ -186,7 +196,7 @@ textarea.form-input{resize:vertical;min-height:80px;}
 .alert-danger{background:var(--danger-bg);border:0.5px solid var(--danger);color:var(--danger-text);}
 
 /* AVATAR */
-.avatar{width:46px;height:46px;border-radius:50%;background:var(--gold-dim);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--gold);flex-shrink:0;overflow:hidden;}
+.avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#6b21a825,#1d4ed818);border:1px solid #7c3aed40;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#a855f7;flex-shrink:0;overflow:hidden;}
 .avatar-sm{width:38px;height:38px;font-size:15px;}
 .avatar-lg{width:80px;height:80px;font-size:28px;}
 .avatar img{width:100%;height:100%;object-fit:cover;}
@@ -195,41 +205,43 @@ textarea.form-input{resize:vertical;min-height:80px;}
 .login-bg{
   min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;
   background:
-    radial-gradient(ellipse 50% 40% at 50% -5%,#c9a84c18 0%,transparent 60%),
-    radial-gradient(ellipse 30% 30% at 20% 80%,#c9a84c08 0%,transparent 50%),
-    radial-gradient(ellipse 25% 25% at 80% 70%,#c9a84c06 0%,transparent 50%),
+    radial-gradient(ellipse 50% 40% at 50% -5%,#6b21a820 0%,transparent 60%),
+    radial-gradient(ellipse 30% 30% at 20% 80%,#1d4ed810 0%,transparent 50%),
+    radial-gradient(ellipse 25% 25% at 80% 70%,#be185d08 0%,transparent 50%),
     var(--bg);
 }
 .login-box{width:100%;max-width:380px;}
 .login-logo{text-align:center;margin-bottom:2.5rem;}
 .login-logo-icon{
   width:80px;height:80px;border-radius:50%;
-  background:radial-gradient(circle,#c9a84c18 0%,#c9a84c08 100%);
-  border:1px solid var(--gold-border);
+  background:linear-gradient(135deg,#4c1d9525,#1e3a8a20);
+  border:1px solid #7c3aed40;
   display:flex;align-items:center;justify-content:center;
   margin:0 auto 20px;font-size:32px;
-  box-shadow:0 0 0 8px #c9a84c08,0 0 40px #c9a84c20,0 0 80px #c9a84c10;
+  color:var(--gold);
+  box-shadow:0 0 0 8px #7c3aed08,0 0 40px #7c3aed25,0 0 80px #7c3aed10;
   animation:logoPulse 3s ease-in-out infinite;
 }
 @keyframes logoPulse{
-  0%,100%{box-shadow:0 0 0 8px #c9a84c08,0 0 40px #c9a84c20,0 0 80px #c9a84c10;}
-  50%{box-shadow:0 0 0 14px #c9a84c05,0 0 60px #c9a84c30,0 0 100px #c9a84c15;}
+  0%,100%{box-shadow:0 0 0 8px #7c3aed08,0 0 40px #7c3aed25,0 0 80px #7c3aed10;}
+  50%{box-shadow:0 0 0 14px #7c3aed05,0 0 60px #7c3aed35,0 0 100px #7c3aed15;}
 }
 .login-hint{text-align:center;font-size:11px;color:var(--text3);margin-top:16px;padding-top:14px;border-top:0.5px solid var(--border);}
 
 /* ═══ SEARCH ═══ */
 .search-hero{
   background:
-    radial-gradient(ellipse 70% 50% at 50% -5%,#c9a84c16 0%,transparent 60%),
-    radial-gradient(ellipse 40% 30% at 20% 100%,#c9a84c06 0%,transparent 50%);
+    radial-gradient(ellipse 70% 50% at 50% -5%,#6b21a820 0%,transparent 60%),
+    radial-gradient(ellipse 40% 30% at 20% 100%,#1d4ed810 0%,transparent 50%),
+    radial-gradient(ellipse 30% 25% at 90% 50%,#be185d08 0%,transparent 50%);
   padding:4rem 1.5rem 2.5rem;text-align:center;
-  border-bottom:0.5px solid rgba(201,168,76,0.08);
+  border-bottom:0.5px solid #2a204040;
 }
 .search-hero h2{
   font-size:32px;font-weight:800;margin-bottom:10px;
   letter-spacing:-0.5px;
-  text-shadow:0 0 60px rgba(201,168,76,0.3);
 }
+.search-hero h2 .accent-purple{background:linear-gradient(90deg,#a855f7,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .search-hero h2{font-size:28px;font-weight:800;margin-bottom:8px;}
 .search-hero h2 span{color:var(--gold);}
 .search-hero p{font-size:14px;color:var(--text2);}
@@ -239,19 +251,18 @@ textarea.form-input{resize:vertical;min-height:80px;}
 .search-box input::placeholder{color:var(--text3);font-size:14px;}
 .search-btn{
   padding:14px 28px;
-  background:linear-gradient(135deg,#d4a832,#f0d060,#c9a020);
-  background-size:200% 200%;
+  background:linear-gradient(135deg,#7c3aed,#2563eb);
   border:none;border-radius:var(--radius-lg);
-  color:#0a0800;font-size:15px;font-weight:800;
+  color:#fff;font-size:15px;font-weight:800;
   cursor:pointer;font-family:'Tajawal',sans-serif;
   transition:all .25s;white-space:nowrap;
-  box-shadow:0 4px 20px #c9a84c35,0 0 0 1px #c9a84c30;
+  box-shadow:0 4px 20px #7c3aed35,0 0 0 1px #7c3aed30;
   letter-spacing:0.3px;
 }
 .search-btn:hover{
   transform:translateY(-2px);
-  box-shadow:0 8px 30px #c9a84c45,0 0 0 1px #c9a84c50;
-  filter:brightness(1.08);
+  box-shadow:0 8px 30px #7c3aed50,0 0 0 1px #7c3aed50;
+  filter:brightness(1.12);
 }
 .search-btn:active{transform:translateY(0);}
 .search-result-wrap{max-width:600px;margin:1.5rem auto;padding:0 1.5rem;}
@@ -272,19 +283,19 @@ textarea.form-input{resize:vertical;min-height:80px;}
 .phone-cell{display:flex;align-items:center;gap:8px;}
 .phone-num{
   font-family:'Courier New',monospace;font-size:18px;font-weight:700;
-  color:var(--gold-light);letter-spacing:2.5px;direction:ltr;
-  text-shadow:0 0 20px #c9a84c40;
+  color:var(--gold);letter-spacing:2.5px;direction:ltr;
+  text-shadow:0 0 20px #c9a84c50;
 }
 .copy-btn{
   padding:5px 12px;border-radius:8px;
-  border:0.5px solid var(--gold-border);
-  background:var(--gold-dim);color:var(--gold);
+  border:0.5px solid #7c3aed50;
+  background:#7c3aed18;color:#a855f7;
   font-size:11px;font-weight:700;cursor:pointer;
   font-family:'Tajawal',sans-serif;
   transition:all .2s;white-space:nowrap;
   letter-spacing:0.5px;
 }
-.copy-btn:hover{background:var(--gold);color:#0a0800;transform:scale(1.05);}
+.copy-btn:hover{background:#7c3aed;color:#fff;transform:scale(1.05);}
 .copy-btn:active{transform:scale(0.97);}
 /* Not found */
 .not-found-card{text-align:center;padding:2.5rem 1.5rem;}
@@ -306,10 +317,10 @@ textarea.form-input{resize:vertical;min-height:80px;}
 }
 .sidebar-item:hover{color:var(--text);background:var(--bg4);border-right-color:transparent;}
 .sidebar-item.active{
-  color:var(--gold);
-  background:linear-gradient(135deg,#c9a84c14,#c9a84c08);
-  border-right-color:var(--gold);
-  box-shadow:inset 0 0 20px #c9a84c08;
+  color:#a855f7;
+  background:linear-gradient(135deg,#7c3aed14,#2563eb08);
+  border-right-color:#7c3aed;
+  box-shadow:inset 0 0 20px #7c3aed08;
 }
 .sidebar-icon{font-size:16px;width:20px;text-align:center;}
 .sidebar-sep{height:0.5px;background:var(--border);margin:12px 20px;}
@@ -322,7 +333,7 @@ textarea.form-input{resize:vertical;min-height:80px;}
   transition:border-color .2s,box-shadow .2s;
 }
 .stat:hover{border-color:var(--gold-border);box-shadow:0 0 20px #c9a84c10;}
-.stat-num{font-size:36px;font-weight:800;color:var(--gold);text-shadow:0 0 30px #c9a84c40;line-height:1;}
+.stat-num{font-size:36px;font-weight:800;background:linear-gradient(135deg,#a855f7,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
 .stat-label{font-size:11px;color:var(--text3);margin-top:6px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;}
 .tab-title{font-size:18px;font-weight:700;margin-bottom:6px;}
 .tab-subtitle{font-size:13px;color:var(--text3);margin-bottom:1.5rem;}
@@ -380,7 +391,7 @@ textarea.form-input{resize:vertical;min-height:80px;}
   <div class="login-box">
     <div class="login-logo">
       <div class="login-logo-icon">☎</div>
-      <h1 style="font-size:26px;font-weight:800;">دليل المتصلين</h1>
+      <h1 style="font-size:26px;font-weight:800;">دليل الاتصال</h1>
       <p style="font-size:13px;color:var(--text3);margin-top:6px;">النظام الخاص بفريق الإعلام</p>
     </div>
     <div class="card">
@@ -402,7 +413,7 @@ textarea.form-input{resize:vertical;min-height:80px;}
 <!-- SEARCH -->
 <div id="page-search" class="page">
   <nav class="nav">
-    <div class="nav-brand"><div class="nav-dot">☎</div>دليل <span>المتصلين</span></div>
+    <div class="nav-brand"><div class="nav-dot">☎</div>دليل <span>الاتصال</span></div>
     <div class="nav-actions">
       <div id="nav-user-info" style="display:flex;align-items:center;gap:8px;"></div>
       <button id="btn-admin" class="btn btn-outline btn-sm" onclick="showAdmin()" style="display:none;">⚙ الإدارة</button>
@@ -453,7 +464,7 @@ textarea.form-input{resize:vertical;min-height:80px;}
 <!-- ADMIN -->
 <div id="page-admin" class="page">
   <nav class="nav">
-    <div class="nav-brand"><div class="nav-dot">☎</div>دليل <span>المتصلين</span></div>
+    <div class="nav-brand"><div class="nav-dot">☎</div>دليل <span>الاتصال</span></div>
     <div class="nav-actions">
       <div id="nav-user-info2" style="display:flex;align-items:center;gap:8px;"></div>
       <button class="btn btn-outline btn-sm" onclick="showPage('page-search')">البحث</button>
@@ -717,10 +728,10 @@ async function doSearch(){
           <h3 style="font-size:16px;font-weight:600;margin-bottom:8px;">${isPhone?'الرقم غير موجود في قاعدة البيانات':'لا توجد نتائج مطابقة'}</h3>
           <p style="font-size:13px;color:var(--text3);margin-bottom:20px;">${isPhone?'ابحث في المنصات الخارجية':'جرّب كلمة أخرى أو ابحث في الإنترنت'}</p>
           ${isPhone?`<div class="ext-grid">
-            <a href="https://www.google.com/search?q=${enc}" target="_blank" class="ext-btn" style="background:#1a2a3a;color:#7ab4e8;border:0.5px solid #2a4a6a;">🌐 Google</a>
-            <a href="https://www.truecaller.com/search/dz/${enc.replace(/%2B/g,'')}" target="_blank" class="ext-btn" style="background:#1a3a2a;color:#7ae8a4;border:0.5px solid #2a6a4a;">📞 Truecaller</a>
-            <a href="https://wa.me/${enc.replace(/%2B/g,'')}" target="_blank" class="ext-btn" style="background:#1a3a1a;color:#7ae87a;border:0.5px solid #2a6a2a;">💬 WhatsApp</a>
-            <a href="https://www.google.com/maps/search/${enc}" target="_blank" class="ext-btn" style="background:#3a2a1a;color:#e8c47a;border:0.5px solid #6a4a2a;">📍 Maps</a>
+            <a href="https://www.google.com/search?q=${enc}" target="_blank" class="ext-btn" style="background:#0d1a30;color:#60a5fa;border:0.5px solid #1d4ed840;">🌐 Google</a>
+            <a href="https://www.truecaller.com/search/dz/${enc.replace(/%2B/g,'')}" target="_blank" class="ext-btn" style="background:#0a2016;color:#4daa78;border:0.5px solid #1f6b3f40;">📞 Truecaller</a>
+            <a href="https://wa.me/${enc.replace(/%2B/g,'')}" target="_blank" class="ext-btn" style="background:#0a1a0a;color:#4daa78;border:0.5px solid #1f6b3f30;">💬 WhatsApp</a>
+            <a href="https://www.google.com/maps/search/${enc}" target="_blank" class="ext-btn" style="background:#1a0d28;color:#a855f7;border:0.5px solid #6b21a840;">📍 Maps</a>
           </div>`:''}
         </div>`;
     }
